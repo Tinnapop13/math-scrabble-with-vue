@@ -1,5 +1,6 @@
 <script setup>
-import ItemListComp from './components/ItemList.vue'
+import ItemListComp from '../components/ItemList.vue'
+import { ref, computed, onMounted, watch,reactive } from 'vue';
 
 
 

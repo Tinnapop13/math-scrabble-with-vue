@@ -12,13 +12,15 @@
       'STR': cell.positionAttribute.value=='STR',
       'cell' : cell.positionAttribute.value=='NN0'
     }">
-      {{ cell.tile == null ? cell.positionAttribute.value : cell.tile.value }}
+      <img :src="cell.imgURL" alt="Img_notFound">
     </div>
   </div>
   
 </div>
 <div class="rack"  >
-  <div class="tile" v-for="tile in rack" :key="tile " @click="getInfo" :value="tile.tileId"  >{{ tile.value }} </div>
+  <div class="tile" v-for="tile in rack" :key="tile " @click="getInfo(tile)"  >
+    <img :src="tile.imgURL" alt="Img_notFound" >
+  </div>
 </div>
 
 <div> {{ selectedState }} {{ currentSelected.selectedTile != null ? currentSelected.selectedTile.amount : currentSelected.selectedTile}}</div>
@@ -28,10 +30,6 @@
 <button @click="function(){console.log(board)}">check</button>
 <button @click="computedScore">get</button>
 <button @click="function(){boardShow = !boardShow}">{{ boardShow}}</button>
-
-
-
-
 
 
 </template>
@@ -45,32 +43,36 @@
       value : '0',
       amount : 5,
       point : 1,
-      imgURL : 'http://localhost:5173/src/assets/0_tile.png'
+      
 
     },
     1 : {
       tileId: 1,
       value : '1',
       amount : 6,
-      point : 1
+      point : 1,
+      imgURL : 'http://localhost:5173/src/assets/1.png'
     },
     2 : {
       tileId: 2,
       value : '2',
       amount : 6,
-      point : 1
+      point : 1,
+      imgURL : 'http://localhost:5173/src/assets/2.png'
     },
     3 : {
       tileId: 3,
       value : '3',
       amount : 5,
-      point : 1
+      point : 1,
+      imgURL : 'http://localhost:5173/src/assets/3.png'
     },
     4 : {
       tileId: 4,
       value : '4',
       amount : 5,
-      point : 2
+      point : 2,
+      imgURL : 'http://localhost:5173/src/assets/4.png'
     },
     5 : {
       tileId: 5,
@@ -103,51 +105,62 @@
       amount : 4,
       point : 2,
     },
-    21 : {
+    '+' : {
       tileId: 21,
       value: '+',
       amount : 10,
-      point: 1
+      point: 1,
+      imgURL : 'http://localhost:5173/src/assets/+.png'
     },
-    25 : {
+     '/' : {
       tileId: 25,
       value: '/',
       amount : 10,
-      point: 1
+      point: 1,
+    
     },
-    27 : {
+    '==' : {
       tileId: 27,
       value: '==',
       amount : 10,
-      point: 1
+      point: 1,
+      imgURL : 'http://localhost:5173/src/assets/=.png'
     }
 
   }
-  const TE3 = {
-        value : 'TE3'
+  
+  const BOARD_ATTRIBUTE = {
+     TE3 :{
+        value : 'TE3',
+        imgURL: 'http://localhost:5173/src/assets/TE3.png'
       },
-      TP3 = {
-        value : 'TP3'
+      TP3 : {
+        value : 'TP3',
+        imgURL: 'http://localhost:5173/src/assets/TP3.png'
         
       },
-      DE2 = {
-        value: 'DE2'
+      DE2 :{
+        value: 'DE2',
+        imgURL: 'http://localhost:5173/src/assets/DE2.png'
        
       },
-      DP2 = {
-        value: 'DP2'
+      DP2 : {
+        value: 'DP2',
+        imgURL: 'http://localhost:5173/src/assets/DP2.png'
        
       },
-      NN0 = {
-        value:'NN0'
+      NN0 : {
+        value:'NN0',
+        imgURL: 'http://localhost:5173/src/assets/NN0.png'
         
       },
-      STR ={
-        value : 'STR'
+      STR : {
+        value : 'STR',
+        imgURL: 'http://localhost:5173/src/assets/STR.png'
       }
-  const rack = [TILE_ATTRIBUTE[0],TILE_ATTRIBUTE[1],TILE_ATTRIBUTE[2],TILE_ATTRIBUTE[3],TILE_ATTRIBUTE[4]
-                ,TILE_ATTRIBUTE[7],TILE_ATTRIBUTE[21],TILE_ATTRIBUTE[27],TILE_ATTRIBUTE[0],TILE_ATTRIBUTE[1],TILE_ATTRIBUTE[2],TILE_ATTRIBUTE[3],TILE_ATTRIBUTE[4]
-                ,TILE_ATTRIBUTE[7],TILE_ATTRIBUTE[25],TILE_ATTRIBUTE[27]]
+    }
+  const rack = [TILE_ATTRIBUTE[1],TILE_ATTRIBUTE[2],TILE_ATTRIBUTE[3],TILE_ATTRIBUTE[4]
+                ,TILE_ATTRIBUTE['+'],TILE_ATTRIBUTE['==']]
   
 
   
@@ -157,21 +170,21 @@
   
   
   
-  const BOARD_ATTRIBUTE = [[TE3,NN0,NN0,DP2,NN0,NN0,NN0,TE3,NN0,NN0,NN0,DP2,NN0,NN0,TE3],
-                           [NN0,DE2,NN0,NN0,NN0,TP3,NN0,NN0,NN0,TP3,NN0,NN0,NN0,DE2,NN0],
-                           [NN0,NN0,DE2,NN0,NN0,NN0,DP2,NN0,DP2,NN0,NN0,NN0,DE2,NN0,NN0],
-                           [DP2,NN0,NN0,DE2,NN0,NN0,NN0,DP2,NN0,NN0,NN0,DE2,NN0,NN0,DP2],
-                           [NN0,NN0,NN0,NN0,TP3,NN0,NN0,NN0,NN0,NN0,TP3,NN0,NN0,NN0,NN0],
-                           [NN0,TP3,NN0,NN0,NN0,TP3,NN0,NN0,NN0,TP3,NN0,NN0,NN0,TP3,NN0],
-                           [NN0,NN0,DP2,NN0,NN0,NN0,DP2,NN0,DP2,NN0,NN0,NN0,DP2,NN0,NN0],
-                           [TE3,NN0,NN0,DP2,NN0,NN0,NN0,STR,NN0,NN0,NN0,DP2,NN0,NN0,TE3],
-                           [NN0,NN0,DP2,NN0,NN0,NN0,DP2,NN0,DP2,NN0,NN0,NN0,DP2,NN0,NN0],
-                           [NN0,TP3,NN0,NN0,NN0,TP3,NN0,NN0,NN0,TP3,NN0,NN0,NN0,TP3,NN0],
-                           [NN0,NN0,NN0,NN0,TP3,NN0,NN0,NN0,NN0,NN0,TP3,NN0,NN0,NN0,NN0],
-                           [DP2,NN0,NN0,DE2,NN0,NN0,NN0,DP2,NN0,NN0,NN0,DE2,NN0,NN0,DP2],
-                           [NN0,NN0,DE2,NN0,NN0,NN0,DP2,NN0,DP2,NN0,NN0,NN0,DE2,NN0,NN0],
-                           [NN0,DE2,NN0,NN0,NN0,TP3,NN0,NN0,NN0,TP3,NN0,NN0,NN0,DE2,NN0],
-                           [TE3,NN0,NN0,DP2,NN0,NN0,NN0,TE3,NN0,NN0,NN0,DP2,NN0,NN0,TE3]]
+  const BOARD_ATTRIBUTE_POSITION = [[BOARD_ATTRIBUTE.TE3,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.DP2,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.TE3,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.DP2,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.TE3],
+                           [BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.DE2,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.TP3,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.TP3,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.DE2,BOARD_ATTRIBUTE.NN0],
+                           [BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.DE2,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.DP2,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.DP2,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.DE2,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0],
+                           [BOARD_ATTRIBUTE.DP2,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.DE2,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.DP2,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.DE2,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.DP2],
+                           [BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.TP3,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.TP3,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0],
+                           [BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.TP3,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.TP3,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.TP3,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.TP3,BOARD_ATTRIBUTE.NN0],
+                           [BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.DP2,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.DP2,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.DP2,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.DP2,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0],
+                           [BOARD_ATTRIBUTE.TE3,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.DP2,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.STR,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.DP2,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.TE3],
+                           [BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.DP2,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.DP2,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.DP2,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.DP2,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0],
+                           [BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.TP3,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.TP3,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.TP3,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.TP3,BOARD_ATTRIBUTE.NN0],
+                           [BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.TP3,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.TP3,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0],
+                           [BOARD_ATTRIBUTE.DP2,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.DE2,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.DP2,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.DE2,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.DP2],
+                           [BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.DE2,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.DP2,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.DP2,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.DE2,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0],
+                           [BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.DE2,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.TP3,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.TP3,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.DE2,BOARD_ATTRIBUTE.NN0],
+                           [BOARD_ATTRIBUTE.TE3,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.DP2,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.TE3,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.DP2,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.TE3]]
 const initBoard = function(){
  
   board = Array(15)
@@ -183,7 +196,8 @@ const initBoard = function(){
                                   j: j,
                                   tile: null,
                                   isReserved: false,
-                                  positionAttribute : BOARD_ATTRIBUTE[i][j]
+                                  positionAttribute : BOARD_ATTRIBUTE_POSITION[i][j],
+                                  imgURL: BOARD_ATTRIBUTE_POSITION[i][j].imgURL
   }))
   )
 }
@@ -191,15 +205,16 @@ const initBoard = function(){
   
   const selectedState = ref(false)
   const currentSelected = reactive({
-    classInfo:'',
+    imgURL : '' ,
     selectedTile : null
 
   })
   
-  const getInfo = function(e){
+  const getInfo = function(tile){
     if(selectedState.value == false){
-      currentSelected.classInfo = e.target.className 
-      currentSelected.selectedTile = TILE_ATTRIBUTE[e.target.getAttribute("value")]
+      currentSelected.imgURL = tile.imgURL
+      console.log(currentSelected.imgURL)
+      currentSelected.selectedTile = TILE_ATTRIBUTE[tile.value]
       
       selectedState.value = !selectedState.value
     
@@ -207,11 +222,9 @@ const initBoard = function(){
     }
   }
     const placeInfo = function(i,j,e){
+      
       if(selectedState.value == true  && isAdjacent(i,j)){
-      while (e.target.classList.length > 0) {
-        e.target.classList.remove(e.target.classList.item(0));
-      }
-      e.target.classList.add(currentSelected.classInfo)
+      board[i][j].imgURL = currentSelected.imgURL
       board[i][j].tile = currentSelected.selectedTile
 
 
@@ -291,6 +304,8 @@ const initBoard = function(){
 
   }
 
+ 
+
   
 
   onMounted(() => {
@@ -302,6 +317,9 @@ const initBoard = function(){
 </script>
 
 <style>
+body{
+  background-color: rgb(12, 48, 48);
+}
 .rack{
   display: flex;
   
