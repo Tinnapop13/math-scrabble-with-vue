@@ -3,7 +3,7 @@
   <div style="width: fit-content; height:480px; margin:100px auto;  ">
   <div v-for="(row,i) in board" :key="i" style=" display: flex; flex-direction: row;">
     <div v-for="(cell,j) in board[i] " :key="j" 
-      @click="placeInfo(i,j,$event)"
+      @click="cellHandleClick(i,j,cell)"
     :class="{
       'TE3': cell.positionAttribute.value=='TE3',
       'DE2': cell.positionAttribute.value=='DE2',
@@ -30,6 +30,7 @@
 <button @click="function(){console.log(board)}">check</button>
 <button @click="computedScore">get</button>
 <button @click="function(){boardShow = !boardShow}">{{ boardShow}}</button>
+
 
 
 </template>
@@ -187,7 +188,7 @@
                            [BOARD_ATTRIBUTE.TE3,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.DP2,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.TE3,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.DP2,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.NN0,BOARD_ATTRIBUTE.TE3]]
 const initBoard = function(){
  
-  board = Array(15)
+  board = reactive(Array(15)
                   .fill([])
                   .map( (row,i)=> Array(15)
                                           .fill({})
@@ -199,7 +200,7 @@ const initBoard = function(){
                                   positionAttribute : BOARD_ATTRIBUTE_POSITION[i][j],
                                   imgURL: BOARD_ATTRIBUTE_POSITION[i][j].imgURL
   }))
-  )
+  ))
 }
 
   
@@ -221,17 +222,29 @@ const initBoard = function(){
     
     }
   }
-    const placeInfo = function(i,j,e){
-      
-      if(selectedState.value == true  && isAdjacent(i,j)){
+  const cellHandleClick = function(i,j,cell){
+    if(cell.isReserved == false && cell.tile != null){
+      //cancel tile on board if didnt submit
+      cell.tile = null
+      cell.imgURL = BOARD_ATTRIBUTE_POSITION[i][j].imgURL
+      console.log(cell.tile)
+      console.log(cell.imgURL)
+    }else{
+      placeInfo(i,j,cell)
+    }
+    
+  }
+    const placeInfo = function(i,j,cell){
+      if(selectedState.value == true  && isAdjacent(i,j) && cell.isReserved != true){
       board[i][j].imgURL = currentSelected.imgURL
       board[i][j].tile = currentSelected.selectedTile
-
 
       selectedState.value = !selectedState.value
 
     }
   }
+
+  
   var isBreak = false
   var equation = []
   const computedScore = function(){
@@ -255,8 +268,8 @@ const initBoard = function(){
       let row = 0;
       while(row<15){
         if(board[row][j].tile != null){
-        equation.push(board[row][j].tile.value)
-        console.log(board[row][j].tile.value)
+        equation.push(board[row][j])
+        console.log(board[row][j])
         }
         row++
       }
@@ -266,17 +279,22 @@ const initBoard = function(){
       let col = 0;
       while(col<15){
         if(board[i][col].tile != null){
-          equation.push(board[i][col].tile.value)
-          console.log(board[i][col].tile.value)
+          equation.push(board[i][col])
+          console.log(board[i][col])
         }
         col++
       }
     }
-   
-    console.log(evaluate(equation.join('')))
-    console.log(equation.join(''))
-    equation=[]
-    
+  try{
+    console.log(evaluate(equation.map(tileOnCell => tileOnCell.tile.value).join('')))
+    console.log(equation.map(tileOnCell => tileOnCell.tile.value).join(''))
+  }
+  catch(error){
+    alert('error')
+    return;
+  }
+  equation.forEach((tileOnCell) => board[tileOnCell.i][tileOnCell.j].isReserved = true)
+  equation=[]
   }
 
   const isAdjacent = function(row,col){
@@ -299,14 +317,7 @@ const initBoard = function(){
     else{
       return true;
     }
-
-
-
   }
-
- 
-
-  
 
   onMounted(() => {
     initBoard()
