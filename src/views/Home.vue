@@ -264,6 +264,7 @@ const initBoard = function(){
 
   const getEquation = function(i,j,cell){
     //vertical
+    try{
     if(board[i+1][j].tile != null || board[i-1][j].tile != null){
       let row = 0;
       while(row<15){
@@ -274,7 +275,10 @@ const initBoard = function(){
         row++
       }
     }
+  }
+  catch(error){}
     //horizontal
+    try{
     if(board[i][j+1].tile != null || board[i][j-1].tile != null){
       let col = 0;
       while(col<15){
@@ -285,6 +289,8 @@ const initBoard = function(){
         col++
       }
     }
+  }
+    catch(error){}
   try{
     console.log(evaluate(equation.map(tileOnCell => tileOnCell.tile.value).join('')))
     console.log(equation.map(tileOnCell => tileOnCell.tile.value).join(''))
@@ -299,24 +305,31 @@ const initBoard = function(){
 
   const isAdjacent = function(row,col){
     //upper-left
-    if(board[row-1][col-1].tile != null){
-      return board[row][col-1].tile != null && board[row-1][col].tile != null ? false : true
-    }
+    try{
+      if(board[row-1][col-1].tile != null){
+        return board[row][col-1].tile != null && board[row-1][col].tile != null ? false : true
+      }
+    }catch{}
     //upper-right
-    else if(board[row-1][col+1].tile != null){
-      return board[row][col+1].tile != null && board[row-1][col].tile != null ? false : true
-    }
+    try{
+      if(board[row-1][col+1].tile != null){
+        return board[row][col+1].tile != null && board[row-1][col].tile != null ? false : true
+      }
+    }catch{}
     //lower-left
-    else if(board[row+1][col-1].tile != null){
-      return board[row][col-1].tile != null && board[row+1][col].tile != null ? false : true
-    }
+    try{
+      if(board[row+1][col-1].tile != null){
+        return board[row][col-1].tile != null && board[row+1][col].tile != null ? false : true
+      }
+    }catch{}
     //lower-right
-    else if(board[row+1][col+1].tile != null){
-      return board[row+1][col].tile != null && board[row][col+1].tile != null ? false : true 
-    }
-    else{
+    try{
+      if(board[row+1][col+1].tile != null){
+        return board[row+1][col].tile != null && board[row][col+1].tile != null ? false : true 
+      }
+    }catch{}
       return true;
-    }
+    
   }
 
   onMounted(() => {
