@@ -269,15 +269,14 @@ const computedScore = function () {
 
 const getEquation = function (i, j, cell) {
   //vertical
-  try {
     if (board[i + 1][j].tile != null || board[i - 1][j].tile != null) {
       getEquationVertical(i, j)
     }
-  }
-  catch (error) { }
+  
+  
   //horizontal
   
-    if (board[i][j + 1].tile != null || board[i][j - 1].tile != null) {
+  else if (board[i][j + 1].tile != null || board[i][j - 1].tile != null) {
       getEquationHorizontal(i, j)
     }
   
@@ -292,35 +291,70 @@ const getEquation = function (i, j, cell) {
   }
   equation.forEach(equationStatement => equationStatement.forEach((tileOnCell) => board[tileOnCell.i][tileOnCell.j].isReserved = true))
   equation = [[]]
-}
 
+}
 const getEquationVertical = function (i, j) {
-  console.log('this is vertical')
   let row = 0;
   var equationCount = 0;
+  
   while (row < 15) {
     if (board[row][j].tile != null) {
-      equation[equationCount].push(board[row][j])
-      console.log(board[row][j])
-    }
-    else if (board[row][j].tile == null) {
-      while (board[row][j].tile == null) {
-        row++
+      equation[equationCount].push(board[row][j]);
+      console.log(board[row][j]);
+    } else if (board[row][j].tile == null) {
+      while (row < 15 && board[row][j].tile == null) {
+        row++;
       }
-      if (equation[0].length !== 0) {
-        console.log(equationCount)
-        equation.push([])
-        equationCount++
 
+      if (row < 15 && equation[0].length !== 0) {
+        equation.push([]);
+        equationCount++;
       }
 
       continue;
     }
-    row++
+    row++;
   }
+  // use uniq to loop isReserved in equation if uniq return true dont delete that equation and move to next equation , if equation uniq return false delete that equation 
+  // if recieve more than 1 equation exit all function 
+  
+  row = 0;
+  console.log(row);
 
+  while (row < 15) {
+    if (board[row][j].tile != null && (board[row][j + 1].tile != null || board[row][j - 1].tile != null)) {
+      let col = 0;
+      
+      while (col < 15) {
+        if (board[row][col].tile != null) {
+          equation[equationCount].push(board[row][col]);
+          console.log(board[row][col]);
+        } else if (board[row][col].tile == null) {
+          while (col < 15 && board[row][col].tile == null) {
+            col++;
+          }
+          
+          if (col < 15 && equation[0].length !== 0) {
+            equation.push([]);
+            equationCount++;
+          }
 
-}
+          continue;
+        }
+        col++;
+      }
+    } else {
+      while (row < 15 && !(board[row][j].tile != null && (board[row][j + 1].tile != null || board[row][j - 1].tile != null))) {
+        row++;
+      }
+      continue;
+    }
+    row++;
+  }
+  //use uniq to loop isReserved in equation again if return false delete that equation
+  //use evaluate loop in equation if it not return true delete that equation
+};
+
 
 const getEquationHorizontal = function (i, j) {
   let col = 0;
@@ -393,13 +427,14 @@ const getEquationHorizontal = function (i, j) {
 
 const validate = function(){
   let validateArray = [[],[]]
-  board.forEach((cell) => {
-    if(cell.tile != null && cell.tile.isReserved == false ){
-      validateArray[0].push(cell.tile.i)
-      validateArray[1].push(cell.tile.j)
-    }
-  }
-  )
+  board.forEach((row, i) => {
+    board[i].forEach((col, j) => {
+      if (board[i][j].tile != null && board[i][j].isReserved == false) {
+        validateArray[0].push(board[i][j].i)
+       validateArray[1].push(board[i][j].j)
+      }
+    })
+  })
   console.log(_.uniq(validateArray[0]).length > 1 && _.uniq(validateArray[1]).length > 1 ? false : true)
   return _.uniq(validateArray[0]).length > 1 && _.uniq(validateArray[1]).length > 1 ? false : true;
   
