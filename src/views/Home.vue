@@ -23,14 +23,14 @@
 
   <div> {{ selectedState }} {{ currentSelected.selectedTile != null ? currentSelected.selectedTile.amount :
     currentSelected.selectedTile }}</div>
- 
+
 
 
   <button @click="function () { console.log(board) }">check</button>
   <button @click="computedScore">get</button>
   <button @click="function () { boardShow = !boardShow }">{{ boardShow }}</button>
-  <button @click="validate" >validate</button>
-
+  <button @click="validate">validate</button>
+  <h1>{{ turn }}</h1>
 </template>
 
 <script setup>
@@ -173,25 +173,27 @@ const rack = [TILE_ATTRIBUTE[1], TILE_ATTRIBUTE[2], TILE_ATTRIBUTE[3], TILE_ATTR
 
 var board = []
 const boardShow = ref(false)
+const turn = ref(0);
 
 
 
 
-const BOARD_ATTRIBUTE_POSITION = [[BOARD_ATTRIBUTE.TE3, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TE3, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TE3],
-[BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DE2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TP3, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TP3, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DE2, BOARD_ATTRIBUTE.NN0],
-[BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DE2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DE2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0],
-[BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DE2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DE2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2],
-[BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TP3, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TP3, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0],
-[BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TP3, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TP3, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TP3, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TP3, BOARD_ATTRIBUTE.NN0],
-[BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0],
-[BOARD_ATTRIBUTE.TE3, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.STR, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TE3],
-[BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0],
-[BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TP3, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TP3, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TP3, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TP3, BOARD_ATTRIBUTE.NN0],
-[BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TP3, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TP3, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0],
-[BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DE2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DE2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2],
-[BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DE2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DE2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0],
-[BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DE2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TP3, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TP3, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DE2, BOARD_ATTRIBUTE.NN0],
-[BOARD_ATTRIBUTE.TE3, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TE3, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TE3]]
+const BOARD_ATTRIBUTE_POSITION =
+  [[BOARD_ATTRIBUTE.TE3, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TE3, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TE3],
+  [BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DE2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TP3, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TP3, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DE2, BOARD_ATTRIBUTE.NN0],
+  [BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DE2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DE2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0],
+  [BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DE2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DE2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2],
+  [BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TP3, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TP3, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0],
+  [BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TP3, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TP3, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TP3, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TP3, BOARD_ATTRIBUTE.NN0],
+  [BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0],
+  [BOARD_ATTRIBUTE.TE3, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.STR, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TE3],
+  [BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0],
+  [BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TP3, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TP3, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TP3, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TP3, BOARD_ATTRIBUTE.NN0],
+  [BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TP3, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TP3, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0],
+  [BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DE2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DE2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2],
+  [BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DE2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DE2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0],
+  [BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DE2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TP3, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TP3, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DE2, BOARD_ATTRIBUTE.NN0],
+  [BOARD_ATTRIBUTE.TE3, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TE3, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TE3]]
 const initBoard = function () {
 
   board = reactive(Array(15)
@@ -218,14 +220,10 @@ const currentSelected = reactive({
 })
 
 const getInfo = function (tile) {
-  if (selectedState.value == false) {
+  if (true) {
     currentSelected.imgURL = tile.imgURL
     console.log(currentSelected.imgURL)
     currentSelected.selectedTile = TILE_ATTRIBUTE[tile.value]
-
-    selectedState.value = !selectedState.value
-
-
   }
 }
 const cellHandleClick = function (i, j, cell) {
@@ -241,11 +239,11 @@ const cellHandleClick = function (i, j, cell) {
 
 }
 const placeInfo = function (i, j, cell) {
-  if (selectedState.value == true && isAdjacent(i, j) && cell.isReserved != true) {
+  if ( isAdjacent(i, j) && cell.isReserved != true) {
     board[i][j].imgURL = currentSelected.imgURL
     board[i][j].tile = currentSelected.selectedTile
 
-    selectedState.value = !selectedState.value
+    
 
   }
 }
@@ -265,22 +263,41 @@ const computedScore = function () {
     return isBreak ? true : false
   })
   isBreak = false
+  
 }
 
 const getEquation = function (i, j, cell) {
+  try{
+    validate()
+    if(validate() == false){
+      alert('please insert with the same direction')
+      return
+    }
+  }catch(error){
+    alert(error)
+    return;
+  }
+
   //vertical
+  try{
     if (board[i + 1][j].tile != null || board[i - 1][j].tile != null) {
       getEquationVertical(i, j)
     }
-  
-  
-  //horizontal
-  
-  else if (board[i][j + 1].tile != null || board[i][j - 1].tile != null) {
+
+
+    //horizontal
+
+    else if (board[i][j + 1].tile != null || board[i][j - 1].tile != null) {
       getEquationHorizontal(i, j)
     }
-  
-  
+  }
+  catch(error){
+    equation = [[]]
+    alert(error)
+    return;
+
+  }
+
   try {
     equation.forEach(equationStatement => console.log(evaluate(equationStatement.map(tileOnCell => tileOnCell.tile.value).join(''))))
     equation.forEach(equationStatement => console.log(equationStatement.map(tileOnCell => tileOnCell.tile.value).join('')))
@@ -291,12 +308,13 @@ const getEquation = function (i, j, cell) {
   }
   equation.forEach(equationStatement => equationStatement.forEach((tileOnCell) => board[tileOnCell.i][tileOnCell.j].isReserved = true))
   equation = [[]]
+  turn.value++
 
 }
 const getEquationVertical = function (i, j) {
   let row = 0;
   var equationCount = 0;
-  
+
   while (row < 15) {
     if (board[row][j].tile != null) {
       equation[equationCount].push(board[row][j]);
@@ -315,16 +333,23 @@ const getEquationVertical = function (i, j) {
     }
     row++;
   }
+  if(turn.value > 0){
+  equation = equation.filter((equality) => _.uniq(equality.map(cell => cell.isReserved)).length > 1)
+  }
+  console.log(equation)
+  if (equation.length > 1 || equation.length < 1) {
+    throw new Error('Equation is more than one or didnt have')
+  }
   // use uniq to loop isReserved in equation if uniq return true dont delete that equation and move to next equation , if equation uniq return false delete that equation 
   // if recieve more than 1 equation exit all function 
-  
+
   row = 0;
-  console.log(row);
+  
 
   while (row < 15) {
     if (board[row][j].tile != null && (board[row][j + 1].tile != null || board[row][j - 1].tile != null)) {
       let col = 0;
-      
+
       while (col < 15) {
         if (board[row][col].tile != null) {
           equation[equationCount].push(board[row][col]);
@@ -333,7 +358,7 @@ const getEquationVertical = function (i, j) {
           while (col < 15 && board[row][col].tile == null) {
             col++;
           }
-          
+
           if (col < 15 && equation[0].length !== 0) {
             equation.push([]);
             equationCount++;
@@ -351,8 +376,21 @@ const getEquationVertical = function (i, j) {
     }
     row++;
   }
+  if(turn.value > 0){
+  equation = equation.filter((equality) => _.uniq(equality.map(cell => cell.isReserved)).length > 1)
+  }
+  try{
+  equation.forEach((equality) => {
+    if (evaluate(equality.map(tileOnCell => tileOnCell.tile.value).join('')) != true) {
+      throw new Error('Not an equation')
+    }
+  })}
+  catch(error){
+    throw new Error('Not an equation')
+  }
+
   //use uniq to loop isReserved in equation again if return false delete that equation
-  //use evaluate loop in equation if it not return true delete that equation
+  //use evaluate loop in equation if it not return true(false,number) delete that equation
 };
 
 
@@ -365,7 +403,7 @@ const getEquationHorizontal = function (i, j) {
       console.log(board[i][col])
     }
     else if (board[i][col].tile == null) {
-      while (col<15 && board[i][col].tile == null) {
+      while (col < 15 && board[i][col].tile == null) {
         col++
 
       }
@@ -376,13 +414,21 @@ const getEquationHorizontal = function (i, j) {
 
       }
       continue;
-      
+
     }
-    col++    
+    col++
   }
-  
+  if(turn.value  > 0){
+  equation = equation.filter((equality) => _.uniq(equality.map(cell => cell.isReserved)).length > 1)
+  }
+  console.log(equation)
+  if (equation.length > 1 || equation.length < 1) {
+    throw new Error('Equation is more than one or didnt have')
+  }
+  // use uniq to loop isReserved in equation if uniq return true dont delete that equation and move to next equation , if equation uniq return false delete that equation 
+  // if recieve more than 1 equation exit all function 
   col = 0
-  console.log(col)
+  
 
   while (col < 15) {
     if (board[i][col].tile != null && (board[i + 1][col].tile != null || board[i - 1][col].tile != null)) {
@@ -394,9 +440,9 @@ const getEquationHorizontal = function (i, j) {
         }
         else if (board[row][col].tile == null) {
           while (row < 15 && board[row][col].tile == null) {
-            
+
             row++
-          
+
           }
           if (row < 15 && equation[0].length !== 0) {
             equation.push([])
@@ -408,7 +454,7 @@ const getEquationHorizontal = function (i, j) {
         }
         row++
       }
-      
+
 
     }
     else {
@@ -420,24 +466,44 @@ const getEquationHorizontal = function (i, j) {
     col++
 
   }
+  if(turn.value > 0){
+  equation = equation.filter((equality) => _.uniq(equality.map(cell => cell.isReserved)).length > 1)
+  }
+  try{
+  equation.forEach((equality) => {
+    if (evaluate(equality.map(tileOnCell => tileOnCell.tile.value).join('')) != true) {
+      throw new Error('Not an equation')
+    }
+  })}
+  catch(error){
+    throw new Error('Not an equation')
+  }
+
+  //use uniq to loop isReserved in equation again if return false delete that equation
+  //use evaluate loop in equation if it not return true(false,number) delete that equation
 
 }
 
 
 
-const validate = function(){
-  let validateArray = [[],[]]
+const validate = function () {
+  let validateArray = [[], []]
   board.forEach((row, i) => {
     board[i].forEach((col, j) => {
+      
+      if(turn.value == 0 && board[7][7].tile == null){
+        throw new Error('please start at center of board')
+      }
+    
       if (board[i][j].tile != null && board[i][j].isReserved == false) {
         validateArray[0].push(board[i][j].i)
-       validateArray[1].push(board[i][j].j)
+        validateArray[1].push(board[i][j].j)
       }
     })
   })
   console.log(_.uniq(validateArray[0]).length > 1 && _.uniq(validateArray[1]).length > 1 ? false : true)
   return _.uniq(validateArray[0]).length > 1 && _.uniq(validateArray[1]).length > 1 ? false : true;
-  
+
 }
 
 const isAdjacent = function (row, col) {
