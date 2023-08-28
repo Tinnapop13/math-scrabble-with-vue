@@ -1,8 +1,12 @@
 # Vue 3 + Vite
 Scrabble Math Version for code learning
 ## todo
-- fix getEquation fix getEquation to get only one equation (detect that player has place tile that isReserved = false that didnt adjacent)
-- fix to exit when recieve statenment that not an equation
+- maintain place tile system
+- add turn system
+- add score
+- bag system
+- get random tile from bag
+- player 2 bot
   
   
 
