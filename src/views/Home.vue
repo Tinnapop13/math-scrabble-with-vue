@@ -17,7 +17,8 @@
   </div>
   <div class="rack">
     <div class="tile" v-for="tile in rack" :key="tile" @click="getInfo(tile)">
-      <img :src="tile.imgURL" alt="Img_notFound">
+      <p>{{ tile.value }}</p>
+      <!-- <img :src="tile.imgURL" alt="Img_notFound"> -->
     </div>
   </div>
 
@@ -28,8 +29,9 @@
 
   <button @click="function () { console.log(board) }">check</button>
   <button @click="computedScore">get</button>
-  <button @click="function () { boardShow = !boardShow }">{{ boardShow }}</button>
+  <button @click="initAll">initAll</button>
   <button @click="validate">validate</button>
+
   <h1>{{ turn }}</h1>
 </template>
 
@@ -39,7 +41,7 @@ import { evaluate } from 'mathjs';
 import _ from 'lodash';
 const TILE_ATTRIBUTE = {
   0: {
-    tileId: 0,
+    
     value: '0',
     amount: 5,
     point: 1,
@@ -48,91 +50,186 @@ const TILE_ATTRIBUTE = {
 
   },
   1: {
-    tileId: 1,
+   
     value: '1',
     amount: 6,
     point: 1,
     imgURL: 'http://localhost:5173/src/assets/1.png'
   },
   2: {
-    tileId: 2,
+   
     value: '2',
     amount: 6,
     point: 1,
     imgURL: 'http://localhost:5173/src/assets/2.png'
   },
   3: {
-    tileId: 3,
+    
     value: '3',
     amount: 5,
     point: 1,
     imgURL: 'http://localhost:5173/src/assets/3.png'
   },
   4: {
-    tileId: 4,
+    
     value: '4',
     amount: 5,
     point: 2,
     imgURL: 'http://localhost:5173/src/assets/4.png'
   },
   5: {
-    tileId: 5,
+   
     value: '5',
     amount: 4,
     point: 2
   },
   6: {
-    tileId: 6,
+    
     value: '6',
     amount: 4,
     point: 2
   },
   7: {
-    tileId: 7,
+    
     value: '7',
     amount: 4,
     point: 2
 
   },
   8: {
-    tileId: 8,
+    
     value: '8',
     amount: 4,
     point: 2,
   },
   9: {
-    tileId: 9,
+    
     value: '9',
     amount: 4,
     point: 2,
   },
+  10: {
+    
+    value: '9',
+    amount: 2,
+    point: 3,
+  },
+  11: {
+    
+    value: '9',
+    amount: 1,
+    point: 4,
+  },
+  12: {
+    
+    value: '9',
+    amount: 2,
+    point: 3,
+  },
+  13: {
+    
+    value: '9',
+    amount: 1,
+    point: 6,
+  },
+  14: {
+    
+    value: '9',
+    amount: 1,
+    point: 4,
+  },
+  15: {
+    
+    value: '9',
+    amount: 1,
+    point: 4,
+  },
+  16: {
+    
+    value: '9',
+    amount: 1,
+    point: 4,
+  },
+  17: {
+    
+    value: '9',
+    amount: 1,
+    point: 6,
+  },
+  18: {
+    
+    value: '9',
+    amount: 1,
+    point: 4,
+  },
+  19: {
+    
+    value: '9',
+    amount: 1,
+    point: 7,
+  },
+  20: {
+    
+    value: '9',
+    amount: 1,
+    point: 5,
+  },
   '+': {
-    tileId: 21,
+    
     value: '+',
-    amount: 10,
-    point: 1,
+    amount: 4,
+    point: 2,
     imgURL: 'http://localhost:5173/src/assets/+.png'
   }, '-': {
-    tileId: 22,
+    
     value: '-',
-    amount: 10,
+    amount: 4,
+    point: 2,
+    imgURL: 'http://localhost:5173/src/assets/-.png'
+  },
+   '+/-': {
+    
+    value: '',
+    amount: 5,
     point: 1,
     imgURL: 'http://localhost:5173/src/assets/-.png'
   },
+  
+   '*': {
+    
+    value: '*',
+    amount: 4,
+    point: 2,
+    imgURL: 'http://localhost:5173/src/assets/-.png'
+  },
   '/': {
-    tileId: 25,
+    
     value: '/',
-    amount: 10,
+    amount: 4,
+    point: 2,
+
+  },
+  '*//': {
+    
+    value: '',
+    amount: 4,
     point: 1,
 
   },
   '==': {
-    tileId: 27,
+    
     value: '==',
-    amount: 10,
+    amount: 11,
     point: 1,
     imgURL: 'http://localhost:5173/src/assets/=.png'
+  },
+  'blank': {
+    value: '',
+    amount: 4,
+    point: 0,
+    imgURL: 'http://localhost:5173/src/assets/=.png'
   }
+  
 
 }
 
@@ -166,13 +263,13 @@ const BOARD_ATTRIBUTE = {
     imgURL: 'http://localhost:5173/src/assets/STR.png'
   }
 }
-const rack = [TILE_ATTRIBUTE[1], TILE_ATTRIBUTE[2], TILE_ATTRIBUTE[3], TILE_ATTRIBUTE[4]
-  , TILE_ATTRIBUTE['+'], TILE_ATTRIBUTE['=='], TILE_ATTRIBUTE['-'], TILE_ATTRIBUTE['0']]
 
 
 
-var board = []
-const boardShow = ref(false)
+
+let board = []
+let bag = []
+const rack = reactive([])
 const turn = ref(0);
 
 
@@ -249,8 +346,8 @@ const placeInfo = function (i, j, cell) {
 }
 
 
-var isBreak = false
-var equation = [[]]
+let isBreak = false
+let equation = [[]]
 const computedScore = function () {
   outer_loop: board.some((row, i) => {
     board[i].some((cell, j) => {
@@ -429,7 +526,6 @@ const getEquationHorizontal = function (i, j) {
   // if recieve more than 1 equation exit all function 
   col = 0
   
-
   while (col < 15) {
     if (board[i][col].tile != null && (board[i + 1][col].tile != null || board[i - 1][col].tile != null)) {
       let row = 0;
@@ -485,7 +581,6 @@ const getEquationHorizontal = function (i, j) {
 }
 
 
-
 const validate = function () {
   let validateArray = [[], []]
   board.forEach((row, i) => {
@@ -535,9 +630,31 @@ const isAdjacent = function (row, col) {
 
 }
 
-onMounted(() => {
+const initBag = function(){
+  for (const [key,value] of Object.entries(TILE_ATTRIBUTE)) {
+    for (let i = 0; i < value.amount; i++) {
+      bag.push(TILE_ATTRIBUTE[key])
+      
+    }
+  }
+  console.log(bag)
+}
+
+const initRack = function(){
+  for (let i = 0; rack.length < 8; i++) {
+    let index = Math.floor(Math.random() * bag.length)
+    rack.push(bag[index])
+    bag.slice(index,index++)
+    
+  }
+  console.log(rack)
+}
+
+const initAll = function(){
   initBoard()
-})
+  initBag()
+  initRack()
+}
 
 
 
