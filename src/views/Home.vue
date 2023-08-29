@@ -1,6 +1,6 @@
 <template>
   <h1>Home</h1>
-  <div style="width: fit-content; height:480px; margin:100px auto;  ">
+  <div style="width: fit-content; height:480px; margin:100px auto; " >
     <div v-for="(row, i) in board" :key="i" style=" display: flex; flex-direction: row;">
       <div v-for="(cell, j) in board[i] " :key="j" @click="cellHandleClick(i, j, cell)" :class="{
         'TE3': cell.positionAttribute.value == 'TE3',
@@ -15,10 +15,11 @@
     </div>
 
   </div>
-  <div class="rack">
-    <div class="tile" v-for="tile in rack" :key="tile" @click="getInfo(tile)">
-      <p>{{ tile.value }}</p>
-      <!-- <img :src="tile.imgURL" alt="Img_notFound"> -->
+  <div class="rack" >
+    <div class="tile" v-for="slot in Object.entries(rack)" :key="slot" @click="tileHandleClick(slot)">
+      <img :src="slot[1].tile == null ? slot[1].tile : slot[1].tile.imgURL" alt="Img_notFound"
+        :class="{ 'clicked': slot[1].clicked == true }">
+
     </div>
   </div>
 
@@ -27,21 +28,26 @@
 
 
 
-  <button @click="function () { console.log(board) }">check</button>
+
   <button @click="computedScore">get</button>
   <button @click="initAll">initAll</button>
-  <button @click="validate">validate</button>
+  
+  
 
-  <h1>{{ turn }}</h1>
+  
+
+
+  <h1>{{ turn == -1 ? "-" : turn }}</h1>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, watch, reactive } from 'vue';
 import { evaluate } from 'mathjs';
 import _ from 'lodash';
+
 const TILE_ATTRIBUTE = {
   0: {
-    
+
     value: '0',
     amount: 5,
     point: 1,
@@ -50,186 +56,222 @@ const TILE_ATTRIBUTE = {
 
   },
   1: {
-   
+
     value: '1',
     amount: 6,
     point: 1,
     imgURL: 'http://localhost:5173/src/assets/1.png'
   },
   2: {
-   
+
     value: '2',
     amount: 6,
     point: 1,
     imgURL: 'http://localhost:5173/src/assets/2.png'
   },
   3: {
-    
+
     value: '3',
     amount: 5,
     point: 1,
     imgURL: 'http://localhost:5173/src/assets/3.png'
   },
   4: {
-    
+
     value: '4',
     amount: 5,
     point: 2,
     imgURL: 'http://localhost:5173/src/assets/4.png'
   },
   5: {
-   
+
     value: '5',
     amount: 4,
-    point: 2
+    point: 2,
+    imgURL: 'http://localhost:5173/src/assets/5.png'
+
   },
   6: {
-    
+
     value: '6',
     amount: 4,
-    point: 2
+    point: 2,
+    imgURL: 'http://localhost:5173/src/assets/6.png'
+
   },
   7: {
-    
+
     value: '7',
     amount: 4,
-    point: 2
+    point: 2,
+    imgURL: 'http://localhost:5173/src/assets/7.png'
+
 
   },
   8: {
-    
+
     value: '8',
     amount: 4,
     point: 2,
+    imgURL: 'http://localhost:5173/src/assets/8.png'
+
   },
   9: {
-    
+
     value: '9',
     amount: 4,
     point: 2,
+    imgURL: 'http://localhost:5173/src/assets/9.png'
+
   },
   10: {
-    
-    value: '9',
+
+    value: '10',
     amount: 2,
     point: 3,
+    imgURL: 'http://localhost:5173/src/assets/10.png'
+
   },
   11: {
-    
-    value: '9',
+
+    value: '11',
     amount: 1,
     point: 4,
+    imgURL: 'http://localhost:5173/src/assets/11.png'
+
   },
   12: {
-    
-    value: '9',
+
+    value: '12',
     amount: 2,
     point: 3,
+    imgURL: 'http://localhost:5173/src/assets/12.png'
+
   },
   13: {
-    
-    value: '9',
+
+    value: '13',
     amount: 1,
     point: 6,
+    imgURL: 'http://localhost:5173/src/assets/13.png'
+
   },
   14: {
-    
-    value: '9',
+
+    value: '14',
     amount: 1,
     point: 4,
+    imgURL: 'http://localhost:5173/src/assets/14.png'
+
   },
   15: {
-    
-    value: '9',
+
+    value: '15',
     amount: 1,
     point: 4,
+    imgURL: 'http://localhost:5173/src/assets/15.png'
+
   },
   16: {
-    
-    value: '9',
+
+    value: '16',
     amount: 1,
     point: 4,
+    imgURL: 'http://localhost:5173/src/assets/16.png'
+
   },
   17: {
-    
-    value: '9',
+
+    value: '17',
     amount: 1,
     point: 6,
+    imgURL: 'http://localhost:5173/src/assets/17.png'
+
   },
   18: {
-    
-    value: '9',
+
+    value: '18',
     amount: 1,
     point: 4,
+    imgURL: 'http://localhost:5173/src/assets/18.png'
+
   },
   19: {
-    
-    value: '9',
+
+    value: '19',
     amount: 1,
     point: 7,
+    imgURL: 'http://localhost:5173/src/assets/19.png'
+
   },
   20: {
-    
-    value: '9',
+
+    value: '20',
     amount: 1,
     point: 5,
+    imgURL: 'http://localhost:5173/src/assets/20.png'
+
   },
   '+': {
-    
+
     value: '+',
     amount: 4,
     point: 2,
-    imgURL: 'http://localhost:5173/src/assets/+.png'
+    imgURL: 'http://localhost:5173/src/assets/plus.png'
   }, '-': {
-    
+
     value: '-',
     amount: 4,
     point: 2,
-    imgURL: 'http://localhost:5173/src/assets/-.png'
+    imgURL: 'http://localhost:5173/src/assets/minus.png'
   },
-   '+/-': {
-    
-    value: '',
+  '+/-': {
+
+    value: 'plusminus',
     amount: 5,
     point: 1,
-    imgURL: 'http://localhost:5173/src/assets/-.png'
+    imgURL: 'http://localhost:5173/src/assets/plusminus.png'
   },
-  
-   '*': {
-    
+
+  '*': {
+
     value: '*',
     amount: 4,
     point: 2,
-    imgURL: 'http://localhost:5173/src/assets/-.png'
+    imgURL: 'http://localhost:5173/src/assets/multiply.png'
   },
   '/': {
-    
+
     value: '/',
     amount: 4,
     point: 2,
+    imgURL: 'http://localhost:5173/src/assets/divide.png'
+
 
   },
   '*//': {
-    
-    value: '',
+
+    value: 'multiplydivide',
     amount: 4,
     point: 1,
+    imgURL: 'http://localhost:5173/src/assets/multiplydivide.png'
+
 
   },
   '==': {
-    
+
     value: '==',
     amount: 11,
     point: 1,
-    imgURL: 'http://localhost:5173/src/assets/=.png'
+    imgURL: 'http://localhost:5173/src/assets/equal.png'
   },
   'blank': {
-    value: '',
+    value: 'blank',
     amount: 4,
     point: 0,
-    imgURL: 'http://localhost:5173/src/assets/=.png'
+    imgURL: 'http://localhost:5173/src/assets/blank.png'
   }
-  
+
 
 }
 
@@ -269,8 +311,9 @@ const BOARD_ATTRIBUTE = {
 
 let board = []
 let bag = []
-const rack = reactive([])
-const turn = ref(0);
+const clicked = ref('clicked')
+let rack =  reactive({})
+const turn = ref(-1);
 
 
 
@@ -315,13 +358,30 @@ const currentSelected = reactive({
   selectedTile: null
 
 })
+const tileHandleClick = function (slot) {
+  for (const tile of Object.entries(rack)) {
+    if (tile[1].clicked == true) {
+      tile[1].clicked = false
+      let swap1 = tile[1].tile
+      let swap2 = slot[1].tile
+      tile[1].tile = swap2
+      slot[1].tile = swap1
+      currentSelected.imgURL = ''
+      currentSelected.selectedTile = null
+      selectedState.value = !selectedState.value
+      return
+    }
 
-const getInfo = function (tile) {
-  if (true) {
-    currentSelected.imgURL = tile.imgURL
-    console.log(currentSelected.imgURL)
-    currentSelected.selectedTile = TILE_ATTRIBUTE[tile.value]
   }
+  getInfo(slot)
+}
+const getInfo = function (slot) {
+  currentSelected.imgURL = slot[1].tile.imgURL
+  console.log(currentSelected.imgURL)
+  currentSelected.selectedTile = TILE_ATTRIBUTE[slot[1].tile.value]
+
+  slot[1].clicked = !slot[1].clicked
+  selectedState.value = !selectedState.value
 }
 const cellHandleClick = function (i, j, cell) {
   if (cell.isReserved == false && cell.tile != null) {
@@ -336,15 +396,19 @@ const cellHandleClick = function (i, j, cell) {
 
 }
 const placeInfo = function (i, j, cell) {
-  if ( isAdjacent(i, j) && cell.isReserved != true) {
+  if (isAdjacent(i, j) && cell.isReserved != true && selectedState.value == true) {
     board[i][j].imgURL = currentSelected.imgURL
     board[i][j].tile = currentSelected.selectedTile
-
-    
-
+    currentSelected.imgURL = ""
+    currentSelected.selectedTile = null
+    for (const tile of Object.entries(rack)) {
+      if (tile[1].clicked == true) {
+        tile[1].clicked = false
+      }
+    }
+    selectedState.value = !selectedState.value
   }
 }
-
 
 let isBreak = false
 let equation = [[]]
@@ -360,23 +424,23 @@ const computedScore = function () {
     return isBreak ? true : false
   })
   isBreak = false
-  
+
 }
 
 const getEquation = function (i, j, cell) {
-  try{
+  try {
     validate()
-    if(validate() == false){
+    if (validate() == false) {
       alert('please insert with the same direction')
       return
     }
-  }catch(error){
+  } catch (error) {
     alert(error)
     return;
   }
 
   //vertical
-  try{
+  try {
     if (board[i + 1][j].tile != null || board[i - 1][j].tile != null) {
       getEquationVertical(i, j)
     }
@@ -388,7 +452,7 @@ const getEquation = function (i, j, cell) {
       getEquationHorizontal(i, j)
     }
   }
-  catch(error){
+  catch (error) {
     equation = [[]]
     alert(error)
     return;
@@ -430,8 +494,8 @@ const getEquationVertical = function (i, j) {
     }
     row++;
   }
-  if(turn.value > 0){
-  equation = equation.filter((equality) => _.uniq(equality.map(cell => cell.isReserved)).length > 1)
+  if (turn.value > 0) {
+    equation = equation.filter((equality) => _.uniq(equality.map(cell => cell.isReserved)).length > 1)
   }
   console.log(equation)
   if (equation.length > 1 || equation.length < 1) {
@@ -441,7 +505,7 @@ const getEquationVertical = function (i, j) {
   // if recieve more than 1 equation exit all function 
 
   row = 0;
-  
+
 
   while (row < 15) {
     if (board[row][j].tile != null && (board[row][j + 1].tile != null || board[row][j - 1].tile != null)) {
@@ -473,16 +537,17 @@ const getEquationVertical = function (i, j) {
     }
     row++;
   }
-  if(turn.value > 0){
-  equation = equation.filter((equality) => _.uniq(equality.map(cell => cell.isReserved)).length > 1)
+  if (turn.value > 0) {
+    equation = equation.filter((equality) => _.uniq(equality.map(cell => cell.isReserved)).length > 1)
   }
-  try{
-  equation.forEach((equality) => {
-    if (evaluate(equality.map(tileOnCell => tileOnCell.tile.value).join('')) != true) {
-      throw new Error('Not an equation')
-    }
-  })}
-  catch(error){
+  try {
+    equation.forEach((equality) => {
+      if (evaluate(equality.map(tileOnCell => tileOnCell.tile.value).join('')) != true) {
+        throw new Error('Not an equation')
+      }
+    })
+  }
+  catch (error) {
     throw new Error('Not an equation')
   }
 
@@ -515,8 +580,8 @@ const getEquationHorizontal = function (i, j) {
     }
     col++
   }
-  if(turn.value  > 0){
-  equation = equation.filter((equality) => _.uniq(equality.map(cell => cell.isReserved)).length > 1)
+  if (turn.value > 0) {
+    equation = equation.filter((equality) => _.uniq(equality.map(cell => cell.isReserved)).length > 1)
   }
   console.log(equation)
   if (equation.length > 1 || equation.length < 1) {
@@ -525,7 +590,7 @@ const getEquationHorizontal = function (i, j) {
   // use uniq to loop isReserved in equation if uniq return true dont delete that equation and move to next equation , if equation uniq return false delete that equation 
   // if recieve more than 1 equation exit all function 
   col = 0
-  
+
   while (col < 15) {
     if (board[i][col].tile != null && (board[i + 1][col].tile != null || board[i - 1][col].tile != null)) {
       let row = 0;
@@ -562,16 +627,17 @@ const getEquationHorizontal = function (i, j) {
     col++
 
   }
-  if(turn.value > 0){
-  equation = equation.filter((equality) => _.uniq(equality.map(cell => cell.isReserved)).length > 1)
+  if (turn.value > 0) {
+    equation = equation.filter((equality) => _.uniq(equality.map(cell => cell.isReserved)).length > 1)
   }
-  try{
-  equation.forEach((equality) => {
-    if (evaluate(equality.map(tileOnCell => tileOnCell.tile.value).join('')) != true) {
-      throw new Error('Not an equation')
-    }
-  })}
-  catch(error){
+  try {
+    equation.forEach((equality) => {
+      if (evaluate(equality.map(tileOnCell => tileOnCell.tile.value).join('')) != true) {
+        throw new Error('Not an equation')
+      }
+    })
+  }
+  catch (error) {
     throw new Error('Not an equation')
   }
 
@@ -585,11 +651,11 @@ const validate = function () {
   let validateArray = [[], []]
   board.forEach((row, i) => {
     board[i].forEach((col, j) => {
-      
-      if(turn.value == 0 && board[7][7].tile == null){
+
+      if (turn.value == 0 && board[7][7].tile == null) {
         throw new Error('please start at center of board')
       }
-    
+
       if (board[i][j].tile != null && board[i][j].isReserved == false) {
         validateArray[0].push(board[i][j].i)
         validateArray[1].push(board[i][j].j)
@@ -630,32 +696,62 @@ const isAdjacent = function (row, col) {
 
 }
 
-const initBag = function(){
-  for (const [key,value] of Object.entries(TILE_ATTRIBUTE)) {
+const initBag = function () {
+  for (const [key, value] of Object.entries(TILE_ATTRIBUTE)) {
     for (let i = 0; i < value.amount; i++) {
       bag.push(TILE_ATTRIBUTE[key])
-      
     }
   }
   console.log(bag)
 }
+const assignRack = function(){
+  rack = reactive({
+  1: {
+    tile: null,
+    clicked: false
+  }, 2: {
+    tile: null,
+    clicked: false
+  }, 3: {
+    tile: null,
+    clicked: false
+  }, 4: {
+    tile: null,
+    clicked: false
+  }, 5: {
+    tile: null,
+    clicked: false
+  }, 6: {
+    tile: null,
+    clicked: false
+  }, 7: {
+    tile: null,
+    clicked: false
+  }, 8: {
+    tile: null,
+    clicked: false
+  }
+})
+}
+const initRack = function () {
+  
 
-const initRack = function(){
-  for (let i = 0; rack.length < 8; i++) {
+  for (const [key, value] of Object.entries(rack)) {
     let index = Math.floor(Math.random() * bag.length)
-    rack.push(bag[index])
-    bag.slice(index,index++)
-    
+    rack[key].tile = bag[index]
+    bag.slice(index, index++)
+
   }
   console.log(rack)
 }
 
-const initAll = function(){
-  initBoard()
+const initAll = function () {
   initBag()
+  initBoard()
+  assignRack()
   initRack()
+  turn.value = 0
 }
-
 
 
 </script>
@@ -730,6 +826,10 @@ body {
   width: 35px;
   height: 35px;
   border: 1px solid black;
+}
+
+.clicked {
+  filter: invert(100%);
 }
 </style>
 
