@@ -28,16 +28,27 @@
 
 
 
+  <button v-if="checkSpecialTile()" @click="selectSpecialTile">{{ showselecttile == true ? 'selecting tile' : 'select tile' }}</button>
+
+  <div v-if="showselecttile == true" class="select_window_background">
+    <div class="select_window">
+      please choose tile
+      <div class="special_tile_group">
+        <div v-for="stile in specialtile" class="special_tile" @click="submitSpecialTile(stile)">
+          <img :src="stile.imgURL" alt="Img_notFound">
+        </div>
+      </div>
+      <div class="cancel_button" @click="cancelSelectTile">cancel</div>
+    </div>
+  </div>
 
   <button @click="computedScore">get</button>
   <button @click="initAll">initAll</button>
-  
-  
-
-  
 
 
   <h1>{{ turn == -1 ? "-" : turn }}</h1>
+ 
+
 </template>
 
 <script setup>
@@ -225,7 +236,7 @@ const TILE_ATTRIBUTE = {
     point: 2,
     imgURL: 'http://localhost:5173/src/assets/minus.png'
   },
-  '+/-': {
+  'plusminus': {
 
     value: 'plusminus',
     amount: 5,
@@ -249,7 +260,7 @@ const TILE_ATTRIBUTE = {
 
 
   },
-  '*//': {
+  'multiplydivide': {
 
     value: 'multiplydivide',
     amount: 4,
@@ -427,6 +438,72 @@ const computedScore = function () {
 
 }
 
+const checkSpecialTile = function(){
+  if(currentSelected.selectedTile == null){
+    return false
+  }
+  let checktile = currentSelected.selectedTile.value
+  if(checktile == 'blank' || checktile == 'plusminus' || checktile == 'multiplydivide'  ){
+    return true
+  }
+    return false
+  
+}
+let showselecttile = ref(false)
+let specialtile = []
+const selectSpecialTile = function(){
+  showselecttile.value = true
+  let checktile = currentSelected.selectedTile.value
+  if(checktile == 'blank'){
+    for(const [key,value] of Object.entries(TILE_ATTRIBUTE)){
+      if(!(key === "blank" || key === "plusminus" || key === "multiplydivide")){
+        specialtile.push(TILE_ATTRIBUTE[key])
+      }
+    }
+   
+  }
+  else if(checktile == 'plusminus'){
+    specialtile.push(TILE_ATTRIBUTE['+'])
+    specialtile.push(TILE_ATTRIBUTE['-'])
+
+  }
+  else if(checktile == 'multiplydivide'){
+    specialtile.push(TILE_ATTRIBUTE['*'])
+    specialtile.push(TILE_ATTRIBUTE['/'])
+
+  }
+
+}
+const submitSpecialTile = function(stile){
+  for (const tile of Object.entries(rack)) {
+    if (tile[1].clicked == true) {
+      tile[1].clicked = false
+      //assign special tile only value
+      tile[1].tile.value = stile.value
+      currentSelected.imgURL = ''
+      currentSelected.selectedTile = null
+      selectedState.value = !selectedState.value
+      showselecttile.value = !showselecttile.value
+      specialtile = []
+      return
+    }
+}
+
+
+}
+const cancelSelectTile = function(){
+  for (const tile of Object.entries(rack)) {
+    if (tile[1].clicked == true) {
+      tile[1].clicked = false
+      currentSelected.imgURL = ''
+      currentSelected.selectedTile = null
+      selectedState.value = !selectedState.value
+      showselecttile.value = !showselecttile.value
+      specialtile = []
+      return
+    }
+}
+}
 const getEquation = function (i, j, cell) {
   try {
     validate()
@@ -700,7 +777,8 @@ const initBag = function () {
   for (const [key, value] of Object.entries(TILE_ATTRIBUTE)) {
     for (let i = 0; i < value.amount; i++) {
       bag.push(TILE_ATTRIBUTE[key])
-    }
+      
+    }    
   }
   console.log(bag)
 }
@@ -758,7 +836,7 @@ const initAll = function () {
 
 <style>
 body {
-  background-color: rgb(12, 48, 48);
+  background-color: rgb(206, 206, 206);
 }
 
 .rack {
@@ -831,6 +909,50 @@ body {
 .clicked {
   filter: invert(100%);
 }
+
+.select_window_background{
+  height: 100%;
+  width: 100%;
+  display:flex;
+  top:0;
+  left: 0;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+.select_window{
+  height: 30%;
+  width: 30%;
+  opacity: 100%;
+  background-color: aliceblue;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius:10px;
+  padding:5px;
+
+
+}
+.cancel_button{
+  width:5vw;
+  border: 2px solid black;
+  border-radius: 10px;
+  text-align: center;
+  cursor: pointer;
+
+}
+.special_tile_group{
+  display: flex;
+  flex-wrap: wrap;
+ 
+
+
+}
+.special_tile{
+
+}
+
 </style>
 
 
