@@ -325,6 +325,10 @@ let bag = []
 const clicked = ref('clicked')
 let rack =  reactive({})
 const turn = ref(-1);
+const oneDigit = ['0','1','2','3','4','5','6','7','8','9']
+const twoDigit = ['11','12','13','14','15','16','17','18','19','20']
+const sign = ['+','-','*','/','==']
+
 
 
 
@@ -535,12 +539,55 @@ const getEquation = function (i, j, cell) {
     return;
 
   }
+  try{
 
+  
+  equation.forEach(equationStatement => {
+    let digitLogicCount = 0
+    let zeroLogicCount = 0
+    if(equationStatement[0].tile.value == '+'){
+      throw new Error('plus sign หว่อง')
+    }
+    equationStatement.forEach(tileOnCell =>{
+      if(digitLogicCount == 4){
+        throw new Error('digit logic หว่อง')
+      }
+      if(zeroLogicCount == 2){
+        throw new Error('zero digit in หว่อง position')
+      }
+      if(tileOnCell.tile.value == '0'){
+        zeroLogicCount++
+      }
+      if(oneDigit.indexOf(tileOnCell.tile.value) !== -1){
+        digitLogicCount++
+        zeroLogicCount++
+      }
+      else if(twoDigit.indexOf(tileOnCell.tile.value) !== -1){
+        digitLogicCount = digitLogicCount+3
+        zeroLogicCount++
+      }
+      else if(sign.indexOf(tileOnCell.tile.value) !== -1){
+        digitLogicCount = 0
+        zeroLogicCount = 0
+      }
+    }
+    )
+
+    
+  });
+}
+catch(error){
+  equation = [[]]
+  console.log(error)
+  alert(error)
+  return
+}
   try {
     equation.forEach(equationStatement => console.log(evaluate(equationStatement.map(tileOnCell => tileOnCell.tile.value).join(''))))
     equation.forEach(equationStatement => console.log(equationStatement.map(tileOnCell => tileOnCell.tile.value).join('')))
   }
   catch (error) {
+    equation = [[]]
     alert('error')
     return;
   }
@@ -949,9 +996,7 @@ body {
 
 
 }
-.special_tile{
 
-}
 
 </style>
 
