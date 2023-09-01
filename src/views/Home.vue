@@ -577,8 +577,6 @@ const getEquation = function (i, j, cell) {
 
   }
   try {
-
-
     equation.forEach(equationStatement => {
       let digitLogicCount = 0
       let zeroLogicCount = 0
@@ -587,15 +585,17 @@ const getEquation = function (i, j, cell) {
         if (digitLogicCount == 4) {
           throw new Error('digit logic หว่อง')
         }
+        if (tileOnCell.tile.value != '0' && zeroLogicCount == 0) {
+          zeroLogicCount = -1
+        }
+        if (tileOnCell.tile.value == '+' && digitLogicCount == 0) {
+          throw new Error('plus sign หว่อง')
+        }
         if (oneDigit.indexOf(tileOnCell.tile.value) !== -1) {
           digitLogicCount++
-          if (tileOnCell.tile.value != '0' && zeroLogicCount == 0) {
-            zeroLogicCount = -1
-          }
         }
         else if (twoDigit.indexOf(tileOnCell.tile.value) !== -1) {
           digitLogicCount = digitLogicCount + 3
-
         }
         else if (sign.indexOf(tileOnCell.tile.value) !== -1) {
           digitLogicCount = 0
@@ -604,9 +604,7 @@ const getEquation = function (i, j, cell) {
         if (zeroLogicCount == 1) {
           throw new Error('zero digit in หว่อง position')
         }
-        if (tileOnCell.tile.value == '+' && zeroLogicCount == 0) {
-          throw new Error('plus sign หว่อง')
-        }
+        
         if (tileOnCell.tile.value == '0' && zeroLogicCount != -1) {
           zeroLogicCount++
         }
@@ -670,11 +668,11 @@ const getEquationVertical = function (i, j) {
 
 
   while (row < 15) {
-    if (board[row][j].tile != null && (board[row][j + 1].tile != null || board[row][j - 1].tile != null)) {
+    if (board[row][j].tile != null  && (board[row][j + 1].tile != null || board[row][j - 1].tile != null) ) {
       let col = 0;
-
+      if(board[row][j].isReserved == false ){
       while (col < 15) {
-        if (board[row][col].tile != null) {
+        if (board[row][col].tile != null ) {
           equation[equationCount].push(board[row][col]);
           console.log(board[row][col]);
         } else if (board[row][col].tile == null) {
@@ -691,6 +689,7 @@ const getEquationVertical = function (i, j) {
         }
         col++;
       }
+    }
     } else {
       while (row < 15 && !(board[row][j].tile != null && (board[row][j + 1].tile != null || board[row][j - 1].tile != null))) {
         row++;
@@ -752,8 +751,9 @@ const getEquationHorizontal = function (i, j) {
   col = 0
 
   while (col < 15) {
-    if (board[i][col].tile != null && (board[i + 1][col].tile != null || board[i - 1][col].tile != null)) {
+    if (board[i][col].tile != null && (board[i + 1][col].tile != null || board[i - 1][col].tile != null )){
       let row = 0;
+      if(board[i][col].isReserved == false){
       while (row < 15) {
         if (board[row][col].tile != null) {
           equation[equationCount].push(board[row][col])
@@ -776,7 +776,7 @@ const getEquationHorizontal = function (i, j) {
         row++
       }
 
-
+    }
     }
     else {
       while (col < 15 && !(board[i][col].tile != null && (board[i + 1][col].tile != null || board[i - 1][col].tile != null))) {
@@ -868,29 +868,29 @@ const initBag = function () {
 const assignRack = function () {
   rack = reactive({
     1: {
-      tile: TILE_ATTRIBUTE['-'],
+      tile: null,
       clicked: false
     }, 2: {
-      tile: TILE_ATTRIBUTE['0']
+      tile: null
       ,
       clicked: false
     }, 3: {
-      tile: TILE_ATTRIBUTE['0'],
+      tile: null,
       clicked: false
     }, 4: {
-      tile: TILE_ATTRIBUTE['1'],
+      tile: null,
       clicked: false
     }, 5: {
-      tile: TILE_ATTRIBUTE['1'],
+      tile: null,
       clicked: false
     }, 6: {
-      tile: TILE_ATTRIBUTE['-'],
+      tile: null,
       clicked: false
     }, 7: {
-      tile: TILE_ATTRIBUTE['=='],
+      tile: null,
       clicked: false
     }, 8: {
-      tile: TILE_ATTRIBUTE['=='],
+      tile:null,
       clicked: false
     }
   })
@@ -906,14 +906,24 @@ const initRack = function () {
   }
   console.log(rack)
 }
-
+const drawTile = function(){
+  for(const [key,value] of Object.entries(rack)){
+    if(rack[key].tile == null){
+      let index = Math.floor(Math.random() * bag.length)
+      rack[key].tile = bag[index]
+      bag.slice(index, index++)
+    }
+  }
+}
 const initAll = function () {
   initBag()
   initBoard()
   assignRack()
-  // initRack()
+  initRack()
   turn.value = 0
 }
+
+watch(turn,drawTile)
 
 
 </script>
