@@ -1,6 +1,6 @@
 <template>
   <h1>Home</h1>
-  <div style="width: fit-content; height:480px; margin:100px auto; " >
+  <div style="width: fit-content; height:480px; margin:100px auto; ">
     <div v-for="(row, i) in board" :key="i" style=" display: flex; flex-direction: row;">
       <div v-for="(cell, j) in board[i] " :key="j" @click="cellHandleClick(i, j, cell)" :class="{
         'TE3': cell.positionAttribute.value == 'TE3',
@@ -15,9 +15,9 @@
     </div>
 
   </div>
-  <div class="rack" >
+  <div class="rack">
     <div class="tile" v-for="slot in Object.entries(rack)" :key="slot" @click="tileHandleClick(slot)">
-      <img :src="slot[1].tile == null ? slot[1].tile : slot[1].tile.imgURL" alt="Img_notFound"
+      <img :src="slot[1].tile == null ? holeImgUrl : slot[1].tile.imgURL" alt="Img_notFound"
         :class="{ 'clicked': slot[1].clicked == true }">
 
     </div>
@@ -28,7 +28,9 @@
 
 
 
-  <button v-if="checkSpecialTile()" @click="selectSpecialTile">{{ showselecttile == true ? 'selecting tile' : 'select tile' }}</button>
+  <button v-if="checkSpecialTile() == true" @click="selectSpecialTile">
+    {{ showselecttile == true ? 'selecting tile' : 'select tile' }}
+  </button>
 
   <div v-if="showselecttile == true" class="select_window_background">
     <div class="select_window">
@@ -44,11 +46,10 @@
 
   <button @click="computedScore">get</button>
   <button @click="initAll">initAll</button>
+  <button @click="retrieveAll">retrieveAll</button>
 
 
   <h1>{{ turn == -1 ? "-" : turn }}</h1>
- 
-
 </template>
 
 <script setup>
@@ -323,11 +324,13 @@ const BOARD_ATTRIBUTE = {
 let board = []
 let bag = []
 const clicked = ref('clicked')
-let rack =  reactive({})
+let rack = reactive({})
 const turn = ref(-1);
-const oneDigit = ['0','1','2','3','4','5','6','7','8','9']
-const twoDigit = ['11','12','13','14','15','16','17','18','19','20']
-const sign = ['+','-','*','/','==']
+const holeImgUrl = 'http://localhost:5173/src/assets/hole.png'
+
+const oneDigit = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+const twoDigit = ['11', '12', '13', '14', '15', '16', '17', '18', '19', '20']
+const sign = ['+', '-', '*', '/', '==']
 
 
 
@@ -359,6 +362,7 @@ const initBoard = function () {
         i: i,
         j: j,
         tile: null,
+        value: '',
         isReserved: false,
         positionAttribute: BOARD_ATTRIBUTE_POSITION[i][j],
         imgURL: BOARD_ATTRIBUTE_POSITION[i][j].imgURL
@@ -391,16 +395,26 @@ const tileHandleClick = function (slot) {
   getInfo(slot)
 }
 const getInfo = function (slot) {
-  currentSelected.imgURL = slot[1].tile.imgURL
-  console.log(currentSelected.imgURL)
-  currentSelected.selectedTile = TILE_ATTRIBUTE[slot[1].tile.value]
+  if (slot[1].tile != null) {
+    currentSelected.imgURL = slot[1].tile.imgURL
+    console.log(currentSelected.imgURL)
+    currentSelected.selectedTile = slot[1].tile
 
-  slot[1].clicked = !slot[1].clicked
-  selectedState.value = !selectedState.value
+    console.log(currentSelected.selectedTile.value)
+
+    slot[1].clicked = !slot[1].clicked
+    selectedState.value = !selectedState.value
+  }
 }
 const cellHandleClick = function (i, j, cell) {
   if (cell.isReserved == false && cell.tile != null) {
     //cancel tile on board if didnt submit
+    for (const tile of Object.entries(rack)) {
+      if (tile[1].tile == null) {
+        tile[1].tile = cell.tile
+        break
+      }
+    }
     cell.tile = null
     cell.imgURL = BOARD_ATTRIBUTE_POSITION[i][j].imgURL
     console.log(cell.tile)
@@ -418,6 +432,7 @@ const placeInfo = function (i, j, cell) {
     currentSelected.selectedTile = null
     for (const tile of Object.entries(rack)) {
       if (tile[1].clicked == true) {
+        tile[1].tile = null
         tile[1].clicked = false
       }
     }
@@ -442,47 +457,51 @@ const computedScore = function () {
 
 }
 
-const checkSpecialTile = function(){
-  if(currentSelected.selectedTile == null){
+const checkSpecialTile = function () {
+  if (currentSelected.selectedTile == null) {
     return false
   }
   let checktile = currentSelected.selectedTile.value
-  if(checktile == 'blank' || checktile == 'plusminus' || checktile == 'multiplydivide'  ){
+  if (checktile == 'blank' || checktile == 'plusminus' || checktile == 'multiplydivide') {
     return true
   }
-    return false
-  
+
+
 }
+
 let showselecttile = ref(false)
 let specialtile = []
-const selectSpecialTile = function(){
+const selectSpecialTile = function () {
   showselecttile.value = true
   let checktile = currentSelected.selectedTile.value
-  if(checktile == 'blank'){
-    for(const [key,value] of Object.entries(TILE_ATTRIBUTE)){
-      if(!(key === "blank" || key === "plusminus" || key === "multiplydivide")){
+  if (checktile == 'blank') {
+    for (const [key, value] of Object.entries(TILE_ATTRIBUTE)) {
+      if (!(key === "blank" || key === "plusminus" || key === "multiplydivide")) {
         specialtile.push(TILE_ATTRIBUTE[key])
       }
     }
-   
+
   }
-  else if(checktile == 'plusminus'){
+  else if (checktile == 'plusminus') {
     specialtile.push(TILE_ATTRIBUTE['+'])
     specialtile.push(TILE_ATTRIBUTE['-'])
 
   }
-  else if(checktile == 'multiplydivide'){
+  else if (checktile == 'multiplydivide') {
     specialtile.push(TILE_ATTRIBUTE['*'])
     specialtile.push(TILE_ATTRIBUTE['/'])
 
   }
 
 }
-const submitSpecialTile = function(stile){
+const submitSpecialTile = function (stile) {
   for (const tile of Object.entries(rack)) {
     if (tile[1].clicked == true) {
       tile[1].clicked = false
       //assign special tile only value
+      // tile[1].tile.value = stile.value
+
+      tile[1].tile = Object.create(TILE_ATTRIBUTE[tile[1].tile.value])
       tile[1].tile.value = stile.value
       currentSelected.imgURL = ''
       currentSelected.selectedTile = null
@@ -491,11 +510,11 @@ const submitSpecialTile = function(stile){
       specialtile = []
       return
     }
-}
+  }
 
 
 }
-const cancelSelectTile = function(){
+const cancelSelectTile = function () {
   for (const tile of Object.entries(rack)) {
     if (tile[1].clicked == true) {
       tile[1].clicked = false
@@ -506,7 +525,25 @@ const cancelSelectTile = function(){
       specialtile = []
       return
     }
+  }
 }
+
+const retrieveAll = function () {
+  board.some((row, i) => {
+    board[i].some((cell, j) => {
+      if (board[i][j].tile != null && board[i][j].isReserved == false) {
+        for (const tile of Object.entries(rack)) {
+          if (tile[1].tile == null) {
+            tile[1].tile = board[i][j].tile
+            board[i][j].tile = null
+            board[i][j].imgURL = BOARD_ATTRIBUTE_POSITION[i][j].imgURL
+          }
+        }
+      }
+    })
+
+  })
+
 }
 const getEquation = function (i, j, cell) {
   try {
@@ -539,49 +576,52 @@ const getEquation = function (i, j, cell) {
     return;
 
   }
-  try{
+  try {
 
-  
-  equation.forEach(equationStatement => {
-    let digitLogicCount = 0
-    let zeroLogicCount = 0
-    if(equationStatement[0].tile.value == '+'){
-      throw new Error('plus sign หว่อง')
-    }
-    equationStatement.forEach(tileOnCell =>{
-      if(digitLogicCount == 4){
-        throw new Error('digit logic หว่อง')
-      }
-      if(zeroLogicCount == 2){
-        throw new Error('zero digit in หว่อง position')
-      }
-      if(tileOnCell.tile.value == '0'){
-        zeroLogicCount++
-      }
-      if(oneDigit.indexOf(tileOnCell.tile.value) !== -1){
-        digitLogicCount++
-        zeroLogicCount++
-      }
-      else if(twoDigit.indexOf(tileOnCell.tile.value) !== -1){
-        digitLogicCount = digitLogicCount+3
-        zeroLogicCount++
-      }
-      else if(sign.indexOf(tileOnCell.tile.value) !== -1){
-        digitLogicCount = 0
-        zeroLogicCount = 0
-      }
-    }
-    )
 
-    
-  });
-}
-catch(error){
-  equation = [[]]
-  console.log(error)
-  alert(error)
-  return
-}
+    equation.forEach(equationStatement => {
+      let digitLogicCount = 0
+      let zeroLogicCount = 0
+      
+      equationStatement.forEach(tileOnCell => {
+        if (digitLogicCount == 4) {
+          throw new Error('digit logic หว่อง')
+        }
+        if (oneDigit.indexOf(tileOnCell.tile.value) !== -1) {
+          digitLogicCount++
+          if (tileOnCell.tile.value != '0' && zeroLogicCount == 0) {
+            zeroLogicCount = -1
+          }
+        }
+        else if (twoDigit.indexOf(tileOnCell.tile.value) !== -1) {
+          digitLogicCount = digitLogicCount + 3
+
+        }
+        else if (sign.indexOf(tileOnCell.tile.value) !== -1) {
+          digitLogicCount = 0
+          zeroLogicCount = 0
+        }
+        if (zeroLogicCount == 1) {
+          throw new Error('zero digit in หว่อง position')
+        }
+        if (tileOnCell.tile.value == '+' && zeroLogicCount == 0) {
+          throw new Error('plus sign หว่อง')
+        }
+        if (tileOnCell.tile.value == '0' && zeroLogicCount != -1) {
+          zeroLogicCount++
+        }
+      }
+      )
+
+
+    });
+  }
+  catch (error) {
+    equation = [[]]
+    console.log(error)
+    alert(error)
+    return
+  }
   try {
     equation.forEach(equationStatement => console.log(evaluate(equationStatement.map(tileOnCell => tileOnCell.tile.value).join(''))))
     equation.forEach(equationStatement => console.log(equationStatement.map(tileOnCell => tileOnCell.tile.value).join('')))
@@ -618,9 +658,7 @@ const getEquationVertical = function (i, j) {
     }
     row++;
   }
-  if (turn.value > 0) {
-    equation = equation.filter((equality) => _.uniq(equality.map(cell => cell.isReserved)).length > 1)
-  }
+
   console.log(equation)
   if (equation.length > 1 || equation.length < 1) {
     throw new Error('Equation is more than one or didnt have')
@@ -661,7 +699,7 @@ const getEquationVertical = function (i, j) {
     }
     row++;
   }
-  if (turn.value > 0) {
+  if (equation.length == 1 && turn.value > 0) {
     equation = equation.filter((equality) => _.uniq(equality.map(cell => cell.isReserved)).length > 1)
   }
   try {
@@ -704,9 +742,7 @@ const getEquationHorizontal = function (i, j) {
     }
     col++
   }
-  if (turn.value > 0) {
-    equation = equation.filter((equality) => _.uniq(equality.map(cell => cell.isReserved)).length > 1)
-  }
+  
   console.log(equation)
   if (equation.length > 1 || equation.length < 1) {
     throw new Error('Equation is more than one or didnt have')
@@ -751,7 +787,7 @@ const getEquationHorizontal = function (i, j) {
     col++
 
   }
-  if (turn.value > 0) {
+  if (equation.length == 1 && turn.value > 0) {
     equation = equation.filter((equality) => _.uniq(equality.map(cell => cell.isReserved)).length > 1)
   }
   try {
@@ -824,42 +860,43 @@ const initBag = function () {
   for (const [key, value] of Object.entries(TILE_ATTRIBUTE)) {
     for (let i = 0; i < value.amount; i++) {
       bag.push(TILE_ATTRIBUTE[key])
-      
-    }    
+
+    }
   }
   console.log(bag)
 }
-const assignRack = function(){
+const assignRack = function () {
   rack = reactive({
-  1: {
-    tile: null,
-    clicked: false
-  }, 2: {
-    tile: null,
-    clicked: false
-  }, 3: {
-    tile: null,
-    clicked: false
-  }, 4: {
-    tile: null,
-    clicked: false
-  }, 5: {
-    tile: null,
-    clicked: false
-  }, 6: {
-    tile: null,
-    clicked: false
-  }, 7: {
-    tile: null,
-    clicked: false
-  }, 8: {
-    tile: null,
-    clicked: false
-  }
-})
+    1: {
+      tile: TILE_ATTRIBUTE['-'],
+      clicked: false
+    }, 2: {
+      tile: TILE_ATTRIBUTE['0']
+      ,
+      clicked: false
+    }, 3: {
+      tile: TILE_ATTRIBUTE['0'],
+      clicked: false
+    }, 4: {
+      tile: TILE_ATTRIBUTE['1'],
+      clicked: false
+    }, 5: {
+      tile: TILE_ATTRIBUTE['1'],
+      clicked: false
+    }, 6: {
+      tile: TILE_ATTRIBUTE['-'],
+      clicked: false
+    }, 7: {
+      tile: TILE_ATTRIBUTE['=='],
+      clicked: false
+    }, 8: {
+      tile: TILE_ATTRIBUTE['=='],
+      clicked: false
+    }
+  })
 }
 const initRack = function () {
-  
+
 
   for (const [key, value] of Object.entries(rack)) {
     let index = Math.floor(Math.random() * bag.length)
@@ -874,7 +911,7 @@ const initAll = function () {
   initBag()
   initBoard()
   assignRack()
-  initRack()
+  // initRack()
   turn.value = 0
 }
 
@@ -957,18 +994,19 @@ body {
   filter: invert(100%);
 }
 
-.select_window_background{
+.select_window_background {
   height: 100%;
   width: 100%;
-  display:flex;
-  top:0;
+  display: flex;
+  top: 0;
   left: 0;
   justify-content: center;
   align-items: center;
   position: fixed;
   background-color: rgba(0, 0, 0, 0.5);
 }
-.select_window{
+
+.select_window {
   height: 30%;
   width: 30%;
   opacity: 100%;
@@ -976,28 +1014,25 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  border-radius:10px;
-  padding:5px;
+  border-radius: 10px;
+  padding: 5px;
 
 
 }
-.cancel_button{
-  width:5vw;
+
+.cancel_button {
+  width: 5vw;
   border: 2px solid black;
   border-radius: 10px;
   text-align: center;
   cursor: pointer;
 
 }
-.special_tile_group{
+
+.special_tile_group {
   display: flex;
   flex-wrap: wrap;
- 
-
-
 }
-
-
 </style>
 
 
