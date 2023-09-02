@@ -1,5 +1,5 @@
 <template>
-  <h1>Home</h1>
+  <h1>Math-Scrabble</h1>
   <div style="width: fit-content; height:480px; margin:100px auto; ">
     <div v-for="(row, i) in board" :key="i" style=" display: flex; flex-direction: row;">
       <div v-for="(cell, j) in board[i] " :key="j" @click="cellHandleClick(i, j, cell)" :class="{
@@ -26,8 +26,6 @@
   <div> {{ selectedState }} {{ currentSelected.selectedTile != null ? currentSelected.selectedTile.amount :
     currentSelected.selectedTile }}</div>
 
-
-
   <button v-if="checkSpecialTile() == true" @click="selectSpecialTile">
     {{ showselecttile == true ? 'selecting tile' : 'select tile' }}
   </button>
@@ -44,9 +42,23 @@
     </div>
   </div>
 
+  <div v-if="show_change_tile == true" class="select_window_background">
+    <div class="select_window">
+      please choose tile to change
+      <div :class="ctile_parent" >
+        <div v-for="ctile in changetile" class="special_tile" @click="selectTileToChange(ctile,$event)">
+          <img :src="ctile.imgURL" alt="Img_notFound" >
+        </div>
+      </div>
+      <div class="cancel_button" @click="submitChangeTile">change</div>
+      <div class="cancel_button" @click="cancelChangeTile">cancel</div>
+    </div>
+  </div>
+
   <button @click="computedScore">get</button>
   <button @click="initAll">initAll</button>
   <button @click="retrieveAll">retrieveAll</button>
+  <button @click="selectChangeTile">changeTile</button>
 
 
   <h1>{{ turn == -1 ? "-" : turn }}</h1>
@@ -865,6 +877,100 @@ const initBag = function () {
   }
   console.log(bag)
 }
+let show_change_tile = ref(false)
+let changetile = []
+let selectchangetile = []
+let selectchangetile_index = []
+const selectChangeTile = function(){
+  for (const slot of Object.entries(rack)) {
+        changetile.push(slot[1].tile)
+    }
+  show_change_tile.value = true
+    
+  }
+
+const ctile_parent = ref('change_tile_group')
+const selectTileToChange = function(ctile,event){
+  const change_tile_parent = document.querySelector(`.${ctile_parent.value}`)
+  const change_tile_child = event.currentTarget
+  
+  if(!(event.target.classList.contains('clicked'))){
+    selectchangetile.push(ctile)
+    selectchangetile_index.push(Array.from(change_tile_parent.children).indexOf(change_tile_child))
+    event.target.classList.add("clicked")
+    
+    
+  }
+  else if(event.target.classList.contains('clicked')){
+    let c_tile_index = selectchangetile.indexOf(ctile)
+    let position_index = selectchangetile_index.indexOf(Array.from(change_tile_parent.children).indexOf(change_tile_child))
+    selectchangetile.splice(c_tile_index,1)
+    selectchangetile_index.splice(position_index,1)
+    event.target.classList.remove("clicked")
+    
+    
+
+  }
+  
+}
+const getTileFromImgURL = function(ctile){
+  for (const [key,value] of Object.entries(TILE_ATTRIBUTE)) {
+    if(TILE_ATTRIBUTE[key].imgURL === ctile.imgURL){
+      return TILE_ATTRIBUTE[key]
+    }
+    
+  }
+}
+const submitChangeTile = function(){
+  
+  // push element from selectchangetile to bag with imgURL
+
+  for (const ctile of selectchangetile) {
+      bag.push(getTileFromImgURL(ctile))
+  }
+  
+  let position_index = 0
+  for (const slot of Object.entries(rack)) {
+    
+    if(selectchangetile.indexOf(slot[1].tile) != -1 && selectchangetile_index.indexOf(position_index) != -1){
+
+      let index = selectchangetile.indexOf(slot[1].tile)
+      selectchangetile.splice(index,1)
+      //fix to set null at right position
+      slot[1].tile = null
+    }
+    if (slot[1].clicked == true) {
+      slot[1].clicked = false
+    }
+    position_index++
+  }
+      currentSelected.imgURL = ''
+      currentSelected.selectedTile = null
+      selectedState.value = false
+      show_change_tile.value = !show_change_tile.value
+      changetile = []
+      selectchangetile = []
+      selectchangetile_index = []
+      turn.value++
+      return
+}
+
+const cancelChangeTile = function () {
+  for (const slot of Object.entries(rack)) {
+    if (slot[1].clicked == true) {
+      slot[1].clicked = false
+    }
+  }
+      currentSelected.imgURL = ''
+      currentSelected.selectedTile = null
+      selectedState.value = false
+      show_change_tile.value = !show_change_tile.value
+      changetile = []
+      selectchangetile = []
+      selectchangetile_index = []
+      return
+    }
+
 const assignRack = function () {
   rack = reactive({
     1: {
@@ -901,7 +1007,7 @@ const initRack = function () {
   for (const [key, value] of Object.entries(rack)) {
     let index = Math.floor(Math.random() * bag.length)
     rack[key].tile = bag[index]
-    bag.slice(index, index++)
+    bag.splice(index, 1)
 
   }
   console.log(rack)
@@ -911,9 +1017,10 @@ const drawTile = function(){
     if(rack[key].tile == null){
       let index = Math.floor(Math.random() * bag.length)
       rack[key].tile = bag[index]
-      bag.slice(index, index++)
+      bag.splice(index, 1)
     }
   }
+  console.log(bag)
 }
 const initAll = function () {
   initBag()
@@ -1040,6 +1147,11 @@ body {
 }
 
 .special_tile_group {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.change_tile_group{
   display: flex;
   flex-wrap: wrap;
 }
