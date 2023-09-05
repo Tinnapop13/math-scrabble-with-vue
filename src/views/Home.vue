@@ -1,6 +1,6 @@
 <template>
-  <h1>Math-Scrabble</h1>
-  <div style="width: fit-content; height:480px; margin:100px auto; ">
+  <h1 style="margin: 0;">Math-Scrabble</h1>
+  <div style="width: fit-content; height:480px; margin:0px auto; ">
     <div v-for="(row, i) in board" :key="i" style=" display: flex; flex-direction: row;">
       <div v-for="(cell, j) in board[i] " :key="j" @click="cellHandleClick(i, j, cell)" :class="{
         'TE3': cell.positionAttribute.value == 'TE3',
@@ -15,20 +15,9 @@
     </div>
 
   </div>
-  <div class="rack">
-    <div class="tile" v-for="slot in Object.entries(rack)" :key="slot" @click="tileHandleClick(slot)">
-      <img :src="slot[1].tile == null ? holeImgUrl : slot[1].tile.imgURL" alt="Img_notFound"
-        :class="{ 'clicked': slot[1].clicked == true }">
+  
 
-    </div>
-  </div>
-
-  <div> {{ selectedState }} {{ currentSelected.selectedTile != null ? currentSelected.selectedTile.amount :
-    currentSelected.selectedTile }}</div>
-
-  <button v-if="checkSpecialTile() == true" @click="selectSpecialTile">
-    {{ showselecttile == true ? 'selecting tile' : 'select tile' }}
-  </button>
+ 
 
   <div v-if="showselecttile == true" class="select_window_background">
     <div class="select_window">
@@ -54,14 +43,28 @@
       <div class="cancel_button" @click="cancelChangeTile">cancel</div>
     </div>
   </div>
-
-  <button @click="computedScore">get</button>
-  <button @click="initAll">initAll</button>
+<div class="operation">
+  <div class="rack">
+    <div class="tile" v-for="slot in Object.entries(rack)" :key="slot" @click="tileHandleClick(slot)">
+      <img :src="slot[1].tile == null ? holeImgUrl : slot[1].tile.imgURL" alt="Img_notFound"
+        :class="{ 'clicked': slot[1].clicked == true }">
+    </div>
+  </div>
+  <button @click="initAll" v-if="turn < 0">(☛´∀｀*)☛ กดเริ่มนะจ้ะ</button>
+  <button @click="computedScore">ซับมิด อีคัวชั่น</button>
   <button @click="retrieveAll">retrieveAll</button>
   <button @click="selectChangeTile">changeTile</button>
+  <button v-if="checkSpecialTile() == true" @click="selectSpecialTile">
+    {{ showselecttile == true ? 'selecting tile' : 'select tile' }}
+  </button>
+  <h3>เทินเท่าไหร่แล้วงับ : {{ turn == -1 ? "-" : turn }}</h3>
+</div>
+  
+  <div class="user_panel">
+    <h4>ยัวร์สกอร์งับ : </h4>
+    <h1>{{ player_score }}</h1>
 
-
-  <h1>{{ turn == -1 ? "-" : turn }}</h1>
+  </div>
 </template>
 
 <script setup>
@@ -344,6 +347,9 @@ const oneDigit = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 const twoDigit = ['11', '12', '13', '14', '15', '16', '17', '18', '19', '20']
 const sign = ['+', '-', '*', '/', '==']
 
+const change_quota = ref(0)
+const player_score = ref(0)
+
 
 
 
@@ -465,6 +471,9 @@ const computedScore = function () {
     })
     return isBreak ? true : false
   })
+  if(isBreak == false){
+    alert('ยังไม่ได้ลงเบี้ยสักตัวเลยน้อง')
+  }
   isBreak = false
 
 }
@@ -572,6 +581,7 @@ const getEquation = function (i, j, cell) {
   //vertical
   try {
     if (board[i + 1][j].tile != null || board[i - 1][j].tile != null) {
+      console.log('jid')
       getEquationVertical(i, j)
     }
 
@@ -579,7 +589,12 @@ const getEquation = function (i, j, cell) {
     //horizontal
 
     else if (board[i][j + 1].tile != null || board[i][j - 1].tile != null) {
+      console.log('jard')
       getEquationHorizontal(i, j)
+    }
+    else{
+      alert('วางส้นตรีนไรครับเนี่ย')
+      return
     }
   }
   catch (error) {
@@ -641,6 +656,50 @@ const getEquation = function (i, j, cell) {
     alert('error')
     return;
   }
+  let score = 0
+  equation.forEach(equationStatement => {
+    let multipier = 1
+    let statement_score = 0
+    equationStatement.forEach(tileOnCell => {
+      if(tileOnCell.positionAttribute.value == BOARD_ATTRIBUTE.DE2.value && tileOnCell.isReserved === false){
+        multipier = multipier * 2
+        statement_score = statement_score + tileOnCell.tile.point
+
+      }
+      else if(tileOnCell.positionAttribute.value == BOARD_ATTRIBUTE.DP2.value && tileOnCell.isReserved === false){
+        statement_score = statement_score + (tileOnCell.tile.point * 2)
+        
+      }
+      else if(tileOnCell.positionAttribute.value == BOARD_ATTRIBUTE.TE3.value && tileOnCell.isReserved === false){
+        multipier = multipier * 3
+        statement_score = statement_score + tileOnCell.tile.point
+      }
+      else if(tileOnCell.positionAttribute.value == BOARD_ATTRIBUTE.TP3.value && tileOnCell.isReserved === false){
+        statement_score = statement_score + (tileOnCell.tile.point * 3)
+      }
+      else{
+        statement_score = statement_score + tileOnCell.tile.point
+      }
+    })
+    score = score + (statement_score*multipier)
+
+  })
+  let bingo_count = 0
+  for (const slot of rack) {
+    if(slot[1].tile != null){
+      return
+    }
+    bingo_count += 1
+  }
+  if(bingo_count == 8){
+    score += 40
+  }
+  let interval_score = 0
+  let score_counting = setInterval(function () { 
+    interval_score++; 
+    player_score.value++;
+     if (interval_score == score) {clearInterval(score_counting)} }, 100)
+  console.log(score)
   equation.forEach(equationStatement => equationStatement.forEach((tileOnCell) => board[tileOnCell.i][tileOnCell.j].isReserved = true))
   equation = [[]]
   turn.value++
@@ -951,6 +1010,11 @@ const submitChangeTile = function(){
       changetile = []
       selectchangetile = []
       selectchangetile_index = []
+
+      if(change_quota.value <= 3 && turn.value === 0 ){
+        change_quota.value++
+        return
+      }
       turn.value++
       return
 }
@@ -1029,7 +1093,7 @@ const initAll = function () {
   initRack()
   turn.value = 0
 }
-
+watch(change_quota,drawTile)
 watch(turn,drawTile)
 
 
@@ -1154,6 +1218,28 @@ body {
 .change_tile_group{
   display: flex;
   flex-wrap: wrap;
+}
+
+.operation{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  border: 2px black solid;
+}
+.user_panel{
+  border: 2px solid black;
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  width: 20vw;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>
 
