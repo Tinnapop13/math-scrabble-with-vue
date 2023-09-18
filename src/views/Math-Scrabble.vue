@@ -13,11 +13,8 @@
         <img :src="cell.imgURL" alt="Img_notFound">
       </div>
     </div>
-
   </div>
-  
 
- 
 
   <div v-if="showselecttile == true" class="select_window_background">
     <div class="select_window">
@@ -34,32 +31,33 @@
   <div v-if="show_change_tile == true" class="select_window_background">
     <div class="select_window">
       please choose tile to change
-      <div :class="ctile_parent" >
-        <div v-for="ctile in changetile" class="special_tile" @click="selectTileToChange(ctile,$event)">
-          <img :src="ctile.imgURL" alt="Img_notFound" >
+      <div :class="ctile_parent">
+        <div v-for="ctile in changetile" class="special_tile" @click="selectTileToChange(ctile, $event)">
+          <img :src="ctile.imgURL" alt="Img_notFound">
         </div>
       </div>
       <div class="cancel_button" @click="submitChangeTile">change</div>
       <div class="cancel_button" @click="cancelChangeTile">cancel</div>
     </div>
   </div>
-<div class="operation">
-  <div class="rack">
-    <div class="tile" v-for="slot in Object.entries(rack)" :key="slot" @click="tileHandleClick(slot)">
-      <img :src="slot[1].tile == null ? holeImgUrl : slot[1].tile.imgURL" alt="Img_notFound"
-        :class="{ 'clicked': slot[1].clicked == true }">
+  <div class="operation">
+    <div class="rack">
+      <div class="tile" v-for="slot in Object.entries(rack)" :key="slot" @click="tileHandleClick(slot)">
+        <img :src="slot[1].tile == null ? holeImgUrl : slot[1].tile.imgURL" alt="Img_notFound"
+          :class="{ 'clicked': slot[1].clicked == true }">
+      </div>
     </div>
+    <button @click="initAll" v-if="turn < 0">(☛´∀｀*)☛ กดเริ่มนะจ้ะ</button>
+    <button @click="computedScore">ซับมิด อีคัวชั่น</button>
+    <button @click="retrieveAll">retrieveAll</button>
+    <button @click="selectChangeTile">changeTile</button>
+    <button @click="function(){bot_turn = !bot_turn }">botttttttt</button>
+    <button v-if="checkSpecialTile() == true" @click="selectSpecialTile">
+      {{ showselecttile == true ? 'selecting tile' : 'select tile' }}
+    </button>
+    <h3>เทินเท่าไหร่แล้วงับ : {{ turn == -1 ? "-" : turn }}</h3>
   </div>
-  <button @click="initAll" v-if="turn < 0">(☛´∀｀*)☛ กดเริ่มนะจ้ะ</button>
-  <button @click="computedScore">ซับมิด อีคัวชั่น</button>
-  <button @click="retrieveAll">retrieveAll</button>
-  <button @click="selectChangeTile">changeTile</button>
-  <button v-if="checkSpecialTile() == true" @click="selectSpecialTile">
-    {{ showselecttile == true ? 'selecting tile' : 'select tile' }}
-  </button>
-  <h3>เทินเท่าไหร่แล้วงับ : {{ turn == -1 ? "-" : turn }}</h3>
-</div>
-  
+
   <div class="user_panel">
     <h4>ยัวร์สกอร์งับ : </h4>
     <h1>{{ player_score }}</h1>
@@ -69,8 +67,14 @@
 
 <script setup>
 import { ref, computed, onMounted, watch, reactive } from 'vue';
-import { evaluate } from 'mathjs';
+import { column, evaluate } from 'mathjs';
 import _ from 'lodash';
+import { Permutation, Combination } from 'https://cdn.jsdelivr.net/npm/js-combinatorics@2.1.1/combinatorics.min.js';
+// let c = Permutation.of('abcdefgh', 4);
+// // let a = Permutation.of('abcd');
+// for (const elem of c) {
+// console.log(elem) 
+// }
 
 const TILE_ATTRIBUTE = {
   0: {
@@ -333,14 +337,15 @@ const BOARD_ATTRIBUTE = {
   }
 }
 
-
-
-
 let board = []
 let bag = []
-const clicked = ref('clicked')
 let rack = reactive({})
+let botRack = []
+
+const clicked = ref('clicked')
+
 const turn = ref(-1);
+const botTurn = ref(false)
 const holeImgUrl = 'http://localhost:5173/src/assets/hole.png'
 
 const oneDigit = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
@@ -349,10 +354,8 @@ const sign = ['+', '-', '*', '/', '==']
 
 const change_quota = ref(0)
 const player_score = ref(0)
-
-
-
-
+const bot_score = ref(0)
+const bot_turn = ref(false)
 
 const BOARD_ATTRIBUTE_POSITION =
   [[BOARD_ATTRIBUTE.TE3, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TE3, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TE3],
@@ -370,6 +373,7 @@ const BOARD_ATTRIBUTE_POSITION =
   [BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DE2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DE2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0],
   [BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DE2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TP3, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TP3, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DE2, BOARD_ATTRIBUTE.NN0],
   [BOARD_ATTRIBUTE.TE3, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TE3, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.DP2, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.NN0, BOARD_ATTRIBUTE.TE3]]
+
 const initBoard = function () {
 
   board = reactive(Array(15)
@@ -388,13 +392,13 @@ const initBoard = function () {
     ))
 }
 
-
 const selectedState = ref(false)
 const currentSelected = reactive({
   imgURL: '',
   selectedTile: null
 
 })
+
 const tileHandleClick = function (slot) {
   for (const tile of Object.entries(rack)) {
     if (tile[1].clicked == true) {
@@ -457,7 +461,6 @@ const placeInfo = function (i, j, cell) {
     selectedState.value = !selectedState.value
   }
 }
-
 let isBreak = false
 let equation = [[]]
 const computedScore = function () {
@@ -471,7 +474,7 @@ const computedScore = function () {
     })
     return isBreak ? true : false
   })
-  if(isBreak == false){
+  if (isBreak == false) {
     alert('ยังไม่ได้ลงเบี้ยสักตัวเลยน้อง')
   }
   isBreak = false
@@ -578,21 +581,17 @@ const getEquation = function (i, j, cell) {
     return;
   }
 
-  //vertical
+
   try {
+    //vertical
     if (board[i + 1][j].tile != null || board[i - 1][j].tile != null) {
-      console.log('jid')
       getEquationVertical(i, j)
     }
-
-
     //horizontal
-
     else if (board[i][j + 1].tile != null || board[i][j - 1].tile != null) {
-      console.log('jard')
       getEquationHorizontal(i, j)
     }
-    else{
+    else {
       alert('วางส้นตรีนไรครับเนี่ย')
       return
     }
@@ -607,7 +606,7 @@ const getEquation = function (i, j, cell) {
     equation.forEach(equationStatement => {
       let digitLogicCount = 0
       let zeroLogicCount = 0
-      
+
       equationStatement.forEach(tileOnCell => {
         if (digitLogicCount == 4) {
           throw new Error('digit logic หว่อง')
@@ -631,7 +630,7 @@ const getEquation = function (i, j, cell) {
         if (zeroLogicCount == 1) {
           throw new Error('zero digit in หว่อง position')
         }
-        
+
         if (tileOnCell.tile.value == '0' && zeroLogicCount != -1) {
           zeroLogicCount++
         }
@@ -661,49 +660,50 @@ const getEquation = function (i, j, cell) {
     let multipier = 1
     let statement_score = 0
     equationStatement.forEach(tileOnCell => {
-      if(tileOnCell.positionAttribute.value == BOARD_ATTRIBUTE.DE2.value && tileOnCell.isReserved === false){
+      if (tileOnCell.positionAttribute.value == BOARD_ATTRIBUTE.DE2.value && tileOnCell.isReserved === false) {
         multipier = multipier * 2
         statement_score = statement_score + tileOnCell.tile.point
 
       }
-      else if(tileOnCell.positionAttribute.value == BOARD_ATTRIBUTE.DP2.value && tileOnCell.isReserved === false){
+      else if (tileOnCell.positionAttribute.value == BOARD_ATTRIBUTE.DP2.value && tileOnCell.isReserved === false) {
         statement_score = statement_score + (tileOnCell.tile.point * 2)
-        
+
       }
-      else if(tileOnCell.positionAttribute.value == BOARD_ATTRIBUTE.TE3.value && tileOnCell.isReserved === false){
+      else if (tileOnCell.positionAttribute.value == BOARD_ATTRIBUTE.TE3.value && tileOnCell.isReserved === false) {
         multipier = multipier * 3
         statement_score = statement_score + tileOnCell.tile.point
       }
-      else if(tileOnCell.positionAttribute.value == BOARD_ATTRIBUTE.TP3.value && tileOnCell.isReserved === false){
+      else if (tileOnCell.positionAttribute.value == BOARD_ATTRIBUTE.TP3.value && tileOnCell.isReserved === false) {
         statement_score = statement_score + (tileOnCell.tile.point * 3)
       }
-      else{
+      else {
         statement_score = statement_score + tileOnCell.tile.point
       }
     })
-    score = score + (statement_score*multipier)
+    score = score + (statement_score * multipier)
 
   })
   let bingo_count = 0
-  for (const slot of rack) {
-    if(slot[1].tile != null){
-      return
+  for (const slot of Object.entries(rack)) {
+    if (slot[1].tile != null) {
+      break
     }
     bingo_count += 1
   }
-  if(bingo_count == 8){
+  if (bingo_count == 8) {
     score += 40
   }
   let interval_score = 0
-  let score_counting = setInterval(function () { 
-    interval_score++; 
+  let score_counting = setInterval(function () {
+    interval_score++;
     player_score.value++;
-     if (interval_score == score) {clearInterval(score_counting)} }, 100)
+    if (interval_score == score) { clearInterval(score_counting) }
+  }, 100)
   console.log(score)
   equation.forEach(equationStatement => equationStatement.forEach((tileOnCell) => board[tileOnCell.i][tileOnCell.j].isReserved = true))
   equation = [[]]
   turn.value++
-
+  bot_turn.value = true 
 }
 const getEquationVertical = function (i, j) {
   let row = 0;
@@ -739,28 +739,28 @@ const getEquationVertical = function (i, j) {
 
 
   while (row < 15) {
-    if (board[row][j].tile != null  && (board[row][j + 1].tile != null || board[row][j - 1].tile != null) ) {
+    if (board[row][j].tile != null && (board[row][j + 1].tile != null || board[row][j - 1].tile != null)) {
       let col = 0;
-      if(board[row][j].isReserved == false ){
-      while (col < 15) {
-        if (board[row][col].tile != null ) {
-          equation[equationCount].push(board[row][col]);
-          console.log(board[row][col]);
-        } else if (board[row][col].tile == null) {
-          while (col < 15 && board[row][col].tile == null) {
-            col++;
-          }
+      if (board[row][j].isReserved == false) {
+        while (col < 15) {
+          if (board[row][col].tile != null) {
+            equation[equationCount].push(board[row][col]);
+            console.log(board[row][col]);
+          } else if (board[row][col].tile == null) {
+            while (col < 15 && board[row][col].tile == null) {
+              col++;
+            }
 
-          if (col < 15 && equation[0].length !== 0) {
-            equation.push([]);
-            equationCount++;
-          }
+            if (col < 15 && equation[0].length !== 0) {
+              equation.push([]);
+              equationCount++;
+            }
 
-          continue;
+            continue;
+          }
+          col++;
         }
-        col++;
       }
-    }
     } else {
       while (row < 15 && !(board[row][j].tile != null && (board[row][j + 1].tile != null || board[row][j - 1].tile != null))) {
         row++;
@@ -785,8 +785,7 @@ const getEquationVertical = function (i, j) {
 
   //use uniq to loop isReserved in equation again if return false delete that equation
   //use evaluate loop in equation if it not return true(false,number) delete that equation
-};
-
+}
 
 const getEquationHorizontal = function (i, j) {
   let col = 0;
@@ -812,7 +811,7 @@ const getEquationHorizontal = function (i, j) {
     }
     col++
   }
-  
+
   console.log(equation)
   if (equation.length > 1 || equation.length < 1) {
     throw new Error('Equation is more than one or didnt have')
@@ -822,32 +821,32 @@ const getEquationHorizontal = function (i, j) {
   col = 0
 
   while (col < 15) {
-    if (board[i][col].tile != null && (board[i + 1][col].tile != null || board[i - 1][col].tile != null )){
+    if (board[i][col].tile != null && (board[i + 1][col].tile != null || board[i - 1][col].tile != null)) {
       let row = 0;
-      if(board[i][col].isReserved == false){
-      while (row < 15) {
-        if (board[row][col].tile != null) {
-          equation[equationCount].push(board[row][col])
-          console.log(board[row][col])
-        }
-        else if (board[row][col].tile == null) {
-          while (row < 15 && board[row][col].tile == null) {
-
-            row++
-
+      if (board[i][col].isReserved == false) {
+        while (row < 15) {
+          if (board[row][col].tile != null) {
+            equation[equationCount].push(board[row][col])
+            console.log(board[row][col])
           }
-          if (row < 15 && equation[0].length !== 0) {
-            equation.push([])
-            equationCount++
+          else if (board[row][col].tile == null) {
+            while (row < 15 && board[row][col].tile == null) {
 
+              row++
+
+            }
+            if (row < 15 && equation[0].length !== 0) {
+              equation.push([])
+              equationCount++
+
+            }
+
+            continue;
           }
-
-          continue;
+          row++
         }
-        row++
+
       }
-
-    }
     }
     else {
       while (col < 15 && !(board[i][col].tile != null && (board[i + 1][col].tile != null || board[i - 1][col].tile != null))) {
@@ -877,7 +876,6 @@ const getEquationHorizontal = function (i, j) {
 
 }
 
-
 const validate = function () {
   let validateArray = [[], []]
   board.forEach((row, i) => {
@@ -897,7 +895,6 @@ const validate = function () {
   return _.uniq(validateArray[0]).length > 1 && _.uniq(validateArray[1]).length > 1 ? false : true;
 
 }
-
 const isAdjacent = function (row, col) {
   //upper-left
   try {
@@ -926,7 +923,6 @@ const isAdjacent = function (row, col) {
   return true;
 
 }
-
 const initBag = function () {
   for (const [key, value] of Object.entries(TILE_ATTRIBUTE)) {
     for (let i = 0; i < value.amount; i++) {
@@ -936,65 +932,71 @@ const initBag = function () {
   }
   console.log(bag)
 }
+
 let show_change_tile = ref(false)
 let changetile = []
 let selectchangetile = []
 let selectchangetile_index = []
-const selectChangeTile = function(){
+const selectChangeTile = function () {
   for (const slot of Object.entries(rack)) {
-        changetile.push(slot[1].tile)
+    if (slot[1].tile == null) {
+      return
     }
-  show_change_tile.value = true
-    
   }
+  for (const slot of Object.entries(rack)) {
+    changetile.push(slot[1].tile)
+  }
+  show_change_tile.value = true
+
+}
 
 const ctile_parent = ref('change_tile_group')
-const selectTileToChange = function(ctile,event){
+const selectTileToChange = function (ctile, event) {
   const change_tile_parent = document.querySelector(`.${ctile_parent.value}`)
   const change_tile_child = event.currentTarget
-  
-  if(!(event.target.classList.contains('clicked'))){
+
+  if (!(event.target.classList.contains('clicked'))) {
     selectchangetile.push(ctile)
     selectchangetile_index.push(Array.from(change_tile_parent.children).indexOf(change_tile_child))
     event.target.classList.add("clicked")
-    
-    
-  }
-  else if(event.target.classList.contains('clicked')){
-    let c_tile_index = selectchangetile.indexOf(ctile)
-    let position_index = selectchangetile_index.indexOf(Array.from(change_tile_parent.children).indexOf(change_tile_child))
-    selectchangetile.splice(c_tile_index,1)
-    selectchangetile_index.splice(position_index,1)
-    event.target.classList.remove("clicked")
-    
-    
+
 
   }
-  
+  else if (event.target.classList.contains('clicked')) {
+    let c_tile_index = selectchangetile.indexOf(ctile)
+    let position_index = selectchangetile_index.indexOf(Array.from(change_tile_parent.children).indexOf(change_tile_child))
+    selectchangetile.splice(c_tile_index, 1)
+    selectchangetile_index.splice(position_index, 1)
+    event.target.classList.remove("clicked")
+
+
+
+  }
+
 }
-const getTileFromImgURL = function(ctile){
-  for (const [key,value] of Object.entries(TILE_ATTRIBUTE)) {
-    if(TILE_ATTRIBUTE[key].imgURL === ctile.imgURL){
+const getTileFromImgURL = function (ctile) {
+  for (const [key, value] of Object.entries(TILE_ATTRIBUTE)) {
+    if (TILE_ATTRIBUTE[key].imgURL === ctile.imgURL) {
       return TILE_ATTRIBUTE[key]
     }
-    
+
   }
 }
-const submitChangeTile = function(){
-  
+const submitChangeTile = function () {
+
   // push element from selectchangetile to bag with imgURL
 
   for (const ctile of selectchangetile) {
-      bag.push(getTileFromImgURL(ctile))
+    bag.push(getTileFromImgURL(ctile))
   }
-  
+
   let position_index = 0
   for (const slot of Object.entries(rack)) {
-    
-    if(selectchangetile.indexOf(slot[1].tile) != -1 && selectchangetile_index.indexOf(position_index) != -1){
+
+    if (selectchangetile.indexOf(slot[1].tile) != -1 && selectchangetile_index.indexOf(position_index) != -1) {
 
       let index = selectchangetile.indexOf(slot[1].tile)
-      selectchangetile.splice(index,1)
+      selectchangetile.splice(index, 1)
       //fix to set null at right position
       slot[1].tile = null
     }
@@ -1003,38 +1005,36 @@ const submitChangeTile = function(){
     }
     position_index++
   }
-      currentSelected.imgURL = ''
-      currentSelected.selectedTile = null
-      selectedState.value = false
-      show_change_tile.value = !show_change_tile.value
-      changetile = []
-      selectchangetile = []
-      selectchangetile_index = []
+  currentSelected.imgURL = ''
+  currentSelected.selectedTile = null
+  selectedState.value = false
+  show_change_tile.value = !show_change_tile.value
+  changetile = []
+  selectchangetile = []
+  selectchangetile_index = []
 
-      if(change_quota.value <= 3 && turn.value === 0 ){
-        change_quota.value++
-        return
-      }
-      turn.value++
-      return
+  if (change_quota.value <= 3 && turn.value === 0) {
+    change_quota.value++
+    return
+  }
+  turn.value++
+  return
 }
-
 const cancelChangeTile = function () {
   for (const slot of Object.entries(rack)) {
     if (slot[1].clicked == true) {
       slot[1].clicked = false
     }
   }
-      currentSelected.imgURL = ''
-      currentSelected.selectedTile = null
-      selectedState.value = false
-      show_change_tile.value = !show_change_tile.value
-      changetile = []
-      selectchangetile = []
-      selectchangetile_index = []
-      return
-    }
-
+  currentSelected.imgURL = ''
+  currentSelected.selectedTile = null
+  selectedState.value = false
+  show_change_tile.value = !show_change_tile.value
+  changetile = []
+  selectchangetile = []
+  selectchangetile_index = []
+  return
+}
 const assignRack = function () {
   rack = reactive({
     1: {
@@ -1060,14 +1060,12 @@ const assignRack = function () {
       tile: null,
       clicked: false
     }, 8: {
-      tile:null,
+      tile: null,
       clicked: false
     }
   })
 }
 const initRack = function () {
-
-
   for (const [key, value] of Object.entries(rack)) {
     let index = Math.floor(Math.random() * bag.length)
     rack[key].tile = bag[index]
@@ -1076,9 +1074,177 @@ const initRack = function () {
   }
   console.log(rack)
 }
-const drawTile = function(){
-  for(const [key,value] of Object.entries(rack)){
-    if(rack[key].tile == null){
+const initBot = function () {
+  for (let i = 0; i < 8; i++) {
+    let index = Math.floor(Math.random() * bag.length)
+    botRack.push(bag[index])
+    bag.splice(index, 1)
+  }
+
+}
+const Bot = function () {
+  const allPossibleCell = []
+  const validAllPossibleCell = []
+  let indexScore = 0
+  //make vertical can get all possible cell
+  const verticalCell = []
+  for (let i = 0; i < board.length; i++) {
+    verticalCell.push([])
+    board.forEach(row => verticalCell[i].push(row[i]))
+    
+  }
+
+  //get vertical
+  for (const col of verticalCell) {
+    let indexCell = 1
+    for (let index = 0; index < verticalCell.length; index++) {
+      while(indexCell <= 15){
+        allPossibleCell.push(col.slice(index, indexCell++))
+      }
+      indexCell = index+2
+    }
+  }
+  //get horizontal
+  for (const row of board) {
+    let indexCell = 1
+    for (let index = 0; index < board.length; index++) {
+      while(indexCell <= 15){
+        allPossibleCell.push(row.slice(index, indexCell++))
+      }
+      indexCell = index+2
+    }
+  }
+  console.log(allPossibleCell)
+  allPossibleCell.forEach(cellGroup => {
+    
+    //first turn include str
+    if (turn.value === 0 && cellGroup.map(cell => cell.positionAttribute.value).includes(BOARD_ATTRIBUTE.STR.value)==false) {
+      return
+    }
+    //adjacent
+    if (cellGroup.map(cell => isAdjacent(cell.i, cell.j)).includes(false)) {
+      return
+    }
+    //include isReserved = true
+    if (turn.value != 0 && cellGroup.map(cell => cell.isReserved).includes(true) == false) {
+      return
+    }
+    //-array(3) .filter to get range of permutation = 2 (1 is reserved)
+    const permuteLength = cellGroup.filter(cell => { cell.isReserved == false }).length
+    //-permute (get all permute array of rack)
+    const permutations = Permutation.of(botRack, permuteLength)
+    
+    for (const permute of permutations) {
+      const tileGroup = cellGroup.map(cell => cell.isReserved ? cell.tile : permute.shift())
+  
+      
+      try{
+      if (evaluate(tileGroup.map(tile => tile.value).join('')) != true) {
+        continue
+      }}
+      catch(error){
+        continue
+      }
+      
+      let digitLogicCount = 0
+      let zeroLogicCount = 0
+      let breakPermute = false
+
+      tileGroup.some(tile => {
+        if (digitLogicCount == 4) {
+          breakPermute = true
+          return true
+          //throw new Error('digit logic หว่อง')
+        }
+        if (tile.value != '0' && zeroLogicCount == 0) {
+          zeroLogicCount = -1
+        }
+        if (tile.value == '+' && digitLogicCount == 0) {
+          breakPermute = true
+          return true
+          //throw new Error('plus sign หว่อง')
+        }
+        if (oneDigit.indexOf(tile.value) !== -1) {
+          digitLogicCount++
+        }
+        else if (twoDigit.indexOf(tile.value) !== -1) {
+          digitLogicCount = digitLogicCount + 3
+        }
+        else if (sign.indexOf(tile.value) !== -1) {
+          digitLogicCount = 0
+          zeroLogicCount = 0
+        }
+        if (zeroLogicCount == 1) {
+          breakPermute = true
+          return true
+          //throw new Error('zero digit in หว่อง position')
+        }
+        if (tile.value == '0' && zeroLogicCount != -1) {
+          zeroLogicCount++
+        }
+      }) 
+
+      if (breakPermute === true) {
+        continue
+      }
+      let score = 0
+      let multipier = 1
+      let statement_score = 0
+      tileGroup.forEach((tile,i) => {
+        if (cellGroup[i].positionAttribute.value == BOARD_ATTRIBUTE.DE2.value && cellGroup[i].isReserved === false) {
+          multipier = multipier * 2
+          statement_score += tile.point
+
+        }
+        else if (cellGroup[i].positionAttribute.value == BOARD_ATTRIBUTE.DP2.value && cellGroup[i].isReserved === false) {
+          statement_score += (tile.point * 2)
+
+        }
+        else if (cellGroup[i].positionAttribute.value == BOARD_ATTRIBUTE.TE3.value && cellGroup[i].isReserved === false) {
+          multipier = multipier * 3
+          statement_score += tile.point
+        }
+        else if (cellGroup[i].positionAttribute.value == BOARD_ATTRIBUTE.TP3.value && cellGroup[i].isReserved === false) {
+          statement_score += (tile.point * 3)
+        }
+        else {
+          statement_score += tile.point
+        }
+      })
+      score = score + (statement_score * multipier)
+
+      if (permuteLength == 8) {
+        score += 40
+      }
+      
+      validAllPossibleCell.push({ position: cellGroup, tileGroup: tileGroup, 'score': score }) //add score poperty to object 
+
+    }
+
+  })
+  
+  if(validAllPossibleCell.length===0){
+    console.log('hell yeah')
+    return
+  }
+  _.sortBy(validAllPossibleCell,['score'])
+  indexScore = validAllPossibleCell.length-1
+  
+  console.log(validAllPossibleCell[indexScore])
+  validAllPossibleCell[indexScore].position.forEach((cell,i) =>{
+    cell.imgURL = validAllPossibleCell[indexScore].tileGroup[i].imgURL
+    cell.tile = validAllPossibleCell[indexScore].tileGroup[i]
+    cell.isReserved = true
+  })
+
+  //-end turn
+  turn.value++
+ 
+}
+
+const drawTile = function () {
+  for (const [key, value] of Object.entries(rack)) {
+    if (rack[key].tile == null) {
       let index = Math.floor(Math.random() * bag.length)
       rack[key].tile = bag[index]
       bag.splice(index, 1)
@@ -1091,10 +1257,14 @@ const initAll = function () {
   initBoard()
   assignRack()
   initRack()
+  initBot()
+  console.log(botRack)
   turn.value = 0
 }
-watch(change_quota,drawTile)
-watch(turn,drawTile)
+
+watch(change_quota, drawTile)
+watch(turn, drawTile)
+watch(bot_turn,Bot)
 
 
 </script>
@@ -1215,12 +1385,12 @@ body {
   flex-wrap: wrap;
 }
 
-.change_tile_group{
+.change_tile_group {
   display: flex;
   flex-wrap: wrap;
 }
 
-.operation{
+.operation {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1230,7 +1400,8 @@ body {
   left: 0;
   border: 2px black solid;
 }
-.user_panel{
+
+.user_panel {
   border: 2px solid black;
   position: fixed;
   bottom: 0;
