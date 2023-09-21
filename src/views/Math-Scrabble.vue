@@ -51,7 +51,7 @@
     <button @click="computedScore">ซับมิด อีคัวชั่น</button>
     <button @click="retrieveAll">retrieveAll</button>
     <button @click="selectChangeTile">changeTile</button>
-    <button @click="function(){bot_turn = !bot_turn }">botttttttt</button>
+    <button @click="function () { bot_turn = !bot_turn }">botttttttt</button>
     <button v-if="checkSpecialTile() == true" @click="selectSpecialTile">
       {{ showselecttile == true ? 'selecting tile' : 'select tile' }}
     </button>
@@ -349,7 +349,7 @@ const botTurn = ref(false)
 const holeImgUrl = 'http://localhost:5173/src/assets/hole.png'
 
 const oneDigit = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-const twoDigit = ['11', '12', '13', '14', '15', '16', '17', '18', '19', '20']
+const twoDigit = ['10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20']
 const sign = ['+', '-', '*', '/', '==']
 
 const change_quota = ref(0)
@@ -703,7 +703,7 @@ const getEquation = function (i, j, cell) {
   equation.forEach(equationStatement => equationStatement.forEach((tileOnCell) => board[tileOnCell.i][tileOnCell.j].isReserved = true))
   equation = [[]]
   turn.value++
-  bot_turn.value = true 
+  bot_turn.value = true
 }
 const getEquationVertical = function (i, j) {
   let row = 0;
@@ -713,7 +713,8 @@ const getEquationVertical = function (i, j) {
     if (board[row][j].tile != null) {
       equation[equationCount].push(board[row][j]);
       console.log(board[row][j]);
-    } else if (board[row][j].tile == null) {
+    }
+    else if (board[row][j].tile == null) {
       while (row < 15 && board[row][j].tile == null) {
         row++;
       }
@@ -831,16 +832,12 @@ const getEquationHorizontal = function (i, j) {
           }
           else if (board[row][col].tile == null) {
             while (row < 15 && board[row][col].tile == null) {
-
               row++
-
             }
             if (row < 15 && equation[0].length !== 0) {
               equation.push([])
               equationCount++
-
             }
-
             continue;
           }
           row++
@@ -896,6 +893,7 @@ const validate = function () {
 
 }
 const isAdjacent = function (row, col) {
+
   //upper-left
   try {
     if (board[row - 1][col - 1].tile != null) {
@@ -921,6 +919,33 @@ const isAdjacent = function (row, col) {
     }
   } catch { }
   return true;
+
+}
+const nextTo = function (row, col) {
+  let count = 0
+  try {
+    if (board[row][col - 1].tile !== null) {
+      count += 1
+    }
+  } catch { }
+  try {
+    if (board[row][col + 1].tile !== null) {
+      count += 1
+    }
+  } catch { }
+  try {
+    if (board[row - 1][col].tile !== null) {
+      count += 1
+    }
+  } catch { }
+  try {
+    if (board[row + 1][col].tile !== null) {
+      count += 1
+    }
+  } catch { }
+
+
+  return count;
 
 }
 const initBag = function () {
@@ -1086,160 +1111,235 @@ const Bot = function () {
   const allPossibleCell = []
   const validAllPossibleCell = []
   let indexScore = 0
-  //make vertical can get all possible cell
   const verticalCell = []
   for (let i = 0; i < board.length; i++) {
     verticalCell.push([])
     board.forEach(row => verticalCell[i].push(row[i]))
-    
   }
 
-  //get vertical
   for (const col of verticalCell) {
-    let indexCell = 1
-    for (let index = 0; index < verticalCell.length; index++) {
-      while(indexCell <= 15){
-        allPossibleCell.push(col.slice(index, indexCell++))
-      }
-      indexCell = index+2
-    }
+    allPossibleCell.push(col.slice(0, verticalCell.length))
   }
-  //get horizontal
   for (const row of board) {
-    let indexCell = 1
-    for (let index = 0; index < board.length; index++) {
-      while(indexCell <= 15){
-        allPossibleCell.push(row.slice(index, indexCell++))
+    allPossibleCell.push(row.slice(0, board.length))
+  }
+  //bot core
+  for (const cellGroup of allPossibleCell) {
+    if (turn.value === 0 && cellGroup.map(cell => cell.positionAttribute.value).includes(BOARD_ATTRIBUTE.STR.value) == false) {
+      continue
+    }
+    if (turn.value != 0 && _.uniq(cellGroup.map(cell => cell.isReserved)).length < 2) {
+      continue
+    }
+
+    let start = 0
+    while (start < 15) {
+      let stop = 15
+      while (stop > start) {
+        const sliceCellGroup = cellGroup.slice(start, stop)
+        const freeSlot = sliceCellGroup.filter(cell => cell.isReserved === false)
+        const permutations = Permutation.of(botRack, freeSlot.length)
+        const permutations_clone = Array.from(permutations)
+
+        if (turn.value === 0 && sliceCellGroup.map(cell => cell.positionAttribute.value).includes(BOARD_ATTRIBUTE.STR.value) == false) {
+          stop = stop - 1
+          continue
+        }
+        if (turn.value != 0 && _.uniq(sliceCellGroup.map(cell => cell.isReserved)).length < 2) {
+          stop = stop - 1
+          continue
+        }
+        if (freeSlot.map(cell => isAdjacent(cell.i, cell.j)).includes(false) === true) {
+          stop = stop - 1
+          continue
+        }
+        console.log('do permute')
+
+        for (const permute of permutations_clone) {
+          const permute_clone = Array.from(permute)
+          const tileGroup = sliceCellGroup.map(cell => cell.isReserved === false ? permute_clone.shift() : cell.tile).filter(cell => cell != undefined)
+          const equation_value = tileGroup.map(tile => tile.value).join('')
+          try {
+            if (equation_value.includes('==') === false || evaluate(equation_value) === false) {
+              continue
+            }
+          } catch (error) {
+            continue
+          }
+
+          let adjacentBreak = false
+          //assgin to board 
+          sliceCellGroup.slice(0, tileGroup.length).some((cell, i) => {
+            if (isAdjacent(cell.i, cell.j) === false) {
+              sliceCellGroup.forEach(cell => cell.isReserved === false ? cell.tile = null : 0)
+              adjacentBreak = true
+              return true
+            }
+            cell.isReserved === false ? cell.tile = tileGroup[i] : ''
+          })
+          if (adjacentBreak === true) {
+            stop = stop - 1
+            break
+          }
+          let equationCount = 0
+          const bot_equation = [[]]
+          //check on board
+          const cellGroupLength = cellGroup.length
+          for (let i = 0; i < cellGroupLength; i++) {
+            const cell = cellGroup[i]
+
+            if (cell.tile != null) {
+              bot_equation[equationCount].push(cell);
+            }
+            else if (cell.tile == null) {
+              if (bot_equation[equationCount].length !== 0) {
+                bot_equation.push([]);
+                equationCount++;
+              }
+            }
+          }
+          let checkAnother = false
+          //check another dimension of board
+          sliceCellGroup.some((cell, i) => {
+            if (i === tileGroup.length) {
+              return true
+            }
+            if ((i === 0 || i === tileGroup.length - 1) && (cell.isReserved === false && nextTo(cell.i, cell.j) > 1)) {
+              sliceCellGroup.forEach(cell => cell.isReserved === false ? cell.tile = null : 0)
+              checkAnother = true
+              return true
+            }
+            else if (!(i === 0 || i === tileGroup.length - 1) && (cell.isReserved === false && nextTo(cell.i, cell.j) > 2)) {
+              sliceCellGroup.forEach(cell => cell.isReserved === false ? cell.tile = null : 0)
+              checkAnother = true
+              return true
+            }
+          })
+          if (checkAnother === true) {
+            stop = stop - 1
+            break
+          }
+          //check digit logic
+          let digitLogicCount = 0
+          let zeroLogicCount = 0
+          let breakDigitLogic = false
+
+          tileGroup.some(tile => {
+            if (digitLogicCount === 4) {
+              // throw new Error('digit logic หว่อง')
+              breakDigitLogic = true
+              return true
+            }
+            if (tile.value !== '0' && zeroLogicCount === 0) {
+              zeroLogicCount = -1
+            }
+            if (tile.value === '+' && digitLogicCount === 0) {
+              // throw new Error('plus sign หว่อง')
+              breakDigitLogic = true
+              return true
+            }
+            if (oneDigit.indexOf(tile.value) !== -1) {
+              digitLogicCount++
+            }
+            else if (twoDigit.indexOf(tile.value) !== -1) {
+              digitLogicCount = digitLogicCount + 3
+            }
+            else if (sign.indexOf(tile.value) !== -1) {
+              digitLogicCount = 0
+              zeroLogicCount = 0
+            }
+            if (zeroLogicCount === 1) {
+              // throw new Error('zero digit in หว่อง position')
+              breakDigitLogic = true
+              return true
+            }
+
+            if (tile.value === '0' && zeroLogicCount !== -1) {
+              zeroLogicCount++
+            }
+          })
+          if (breakDigitLogic === true) {
+            sliceCellGroup.forEach(cell => cell.isReserved === false ? cell.tile = null : 0)
+            continue
+          }
+
+          //scoring
+          //add web worker
+
+          //remove from board
+          sliceCellGroup.forEach(cell => cell.isReserved === false ? cell.tile = null : 0)
+          let filtered_bot_equation = null
+          if (turn.value === 0) {
+            filtered_bot_equation = bot_equation.filter(equal => equal.length === tileGroup.length)
+          }
+          else {
+            filtered_bot_equation = bot_equation.filter(equal => equal.length === tileGroup.length && _.uniq(equal.map(cell => cell.isReserved)).length > 1)
+          }
+
+          if (filtered_bot_equation.length === 0) {
+            continue
+          }
+          else if (filtered_bot_equation.length > 0) {
+            let score = 0
+            let multipier = 1
+
+            tileGroup.forEach((tile, i) => {
+              if (cellGroup[i].positionAttribute.value == BOARD_ATTRIBUTE.DE2.value && cellGroup[i].isReserved === false) {
+                multipier = multipier * 2
+                score += tile.point
+
+              }
+              else if (cellGroup[i].positionAttribute.value == BOARD_ATTRIBUTE.DP2.value && cellGroup[i].isReserved === false) {
+                score += (tile.point * 2)
+
+              }
+              else if (cellGroup[i].positionAttribute.value == BOARD_ATTRIBUTE.TE3.value && cellGroup[i].isReserved === false) {
+                multipier = multipier * 3
+                score += tile.point
+              }
+              else if (cellGroup[i].positionAttribute.value == BOARD_ATTRIBUTE.TP3.value && cellGroup[i].isReserved === false) {
+                score += (tile.point * 3)
+              }
+              else {
+                score += tile.point
+              }
+            })
+            score = score * multipier
+
+            if (freeSlot.length === 8) {
+              score += 40
+            }
+            validAllPossibleCell.push({ position: sliceCellGroup.slice(0, tileGroup.length), tileGroup: tileGroup, 'score': score })
+            stop = stop - 1
+            break
+
+          }
+        }
+        stop = stop - 1
       }
-      indexCell = index+2
+      start++
     }
   }
-  console.log(allPossibleCell)
-  allPossibleCell.forEach(cellGroup => {
-    
-    //first turn include str
-    if (turn.value === 0 && cellGroup.map(cell => cell.positionAttribute.value).includes(BOARD_ATTRIBUTE.STR.value)==false) {
-      return
-    }
-    //adjacent
-    if (cellGroup.map(cell => isAdjacent(cell.i, cell.j)).includes(false)) {
-      return
-    }
-    //include isReserved = true
-    if (turn.value != 0 && cellGroup.map(cell => cell.isReserved).includes(true) == false) {
-      return
-    }
-    //-array(3) .filter to get range of permutation = 2 (1 is reserved)
-    const permuteLength = cellGroup.filter(cell => { cell.isReserved == false }).length
-    //-permute (get all permute array of rack)
-    const permutations = Permutation.of(botRack, permuteLength)
-    
-    for (const permute of permutations) {
-      const tileGroup = cellGroup.map(cell => cell.isReserved ? cell.tile : permute.shift())
-  
-      
-      try{
-      if (evaluate(tileGroup.map(tile => tile.value).join('')) != true) {
-        continue
-      }}
-      catch(error){
-        continue
-      }
-      
-      let digitLogicCount = 0
-      let zeroLogicCount = 0
-      let breakPermute = false
 
-      tileGroup.some(tile => {
-        if (digitLogicCount == 4) {
-          breakPermute = true
-          return true
-          //throw new Error('digit logic หว่อง')
-        }
-        if (tile.value != '0' && zeroLogicCount == 0) {
-          zeroLogicCount = -1
-        }
-        if (tile.value == '+' && digitLogicCount == 0) {
-          breakPermute = true
-          return true
-          //throw new Error('plus sign หว่อง')
-        }
-        if (oneDigit.indexOf(tile.value) !== -1) {
-          digitLogicCount++
-        }
-        else if (twoDigit.indexOf(tile.value) !== -1) {
-          digitLogicCount = digitLogicCount + 3
-        }
-        else if (sign.indexOf(tile.value) !== -1) {
-          digitLogicCount = 0
-          zeroLogicCount = 0
-        }
-        if (zeroLogicCount == 1) {
-          breakPermute = true
-          return true
-          //throw new Error('zero digit in หว่อง position')
-        }
-        if (tile.value == '0' && zeroLogicCount != -1) {
-          zeroLogicCount++
-        }
-      }) 
-
-      if (breakPermute === true) {
-        continue
-      }
-      let score = 0
-      let multipier = 1
-      let statement_score = 0
-      tileGroup.forEach((tile,i) => {
-        if (cellGroup[i].positionAttribute.value == BOARD_ATTRIBUTE.DE2.value && cellGroup[i].isReserved === false) {
-          multipier = multipier * 2
-          statement_score += tile.point
-
-        }
-        else if (cellGroup[i].positionAttribute.value == BOARD_ATTRIBUTE.DP2.value && cellGroup[i].isReserved === false) {
-          statement_score += (tile.point * 2)
-
-        }
-        else if (cellGroup[i].positionAttribute.value == BOARD_ATTRIBUTE.TE3.value && cellGroup[i].isReserved === false) {
-          multipier = multipier * 3
-          statement_score += tile.point
-        }
-        else if (cellGroup[i].positionAttribute.value == BOARD_ATTRIBUTE.TP3.value && cellGroup[i].isReserved === false) {
-          statement_score += (tile.point * 3)
-        }
-        else {
-          statement_score += tile.point
-        }
-      })
-      score = score + (statement_score * multipier)
-
-      if (permuteLength == 8) {
-        score += 40
-      }
-      
-      validAllPossibleCell.push({ position: cellGroup, tileGroup: tileGroup, 'score': score }) //add score poperty to object 
-
-    }
-
-  })
-  
-  if(validAllPossibleCell.length===0){
-    console.log('hell yeah')
+  //bot core
+  console.log(validAllPossibleCell)
+  if (validAllPossibleCell.length === 0) {
+    console.log('not have any equation')
     return
   }
-  _.sortBy(validAllPossibleCell,['score'])
-  indexScore = validAllPossibleCell.length-1
-  
+  _.sortBy(validAllPossibleCell, ['score'])
+  // indexScore = validAllPossibleCell.length - 1
+  indexScore = Math.floor(Math.random() * validAllPossibleCell.length)
+
   console.log(validAllPossibleCell[indexScore])
-  validAllPossibleCell[indexScore].position.forEach((cell,i) =>{
+  validAllPossibleCell[indexScore].position.forEach((cell, i) => {
     cell.imgURL = validAllPossibleCell[indexScore].tileGroup[i].imgURL
     cell.tile = validAllPossibleCell[indexScore].tileGroup[i]
     cell.isReserved = true
   })
-
-  //-end turn
+  bot_score.value = validAllPossibleCell[indexScore].score
+  console.log(bot_score.value)
   turn.value++
- 
 }
 
 const drawTile = function () {
@@ -1264,9 +1364,7 @@ const initAll = function () {
 
 watch(change_quota, drawTile)
 watch(turn, drawTile)
-watch(bot_turn,Bot)
-
-
+watch(bot_turn, Bot)
 </script>
 
 <style>
