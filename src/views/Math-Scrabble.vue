@@ -346,7 +346,7 @@ const clicked = ref('clicked')
 
 const turn = ref(-1);
 const botTurn = ref(false)
-const holeImgUrl = 'http://localhost:5173/src/assets/hole.png'
+const holeImgUrl = 'http://localhost:5173/src/assets/NN0.png'
 
 const oneDigit = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 const twoDigit = ['10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20']
