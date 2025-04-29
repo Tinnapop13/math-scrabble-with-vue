@@ -47,7 +47,7 @@
           :class="{ 'clicked': slot[1].clicked == true }">
       </div>
     </div>
-    <button @click="initAll" v-if="turn < 0">(☛´∀｀*)☛ กดเริ่มนะจ้ะ</button>
+    <button @click="initAll" v-if="turn < 0">(☛´∀｀*)☛ Start</button>
     <button @click="computedScore">ซับมิด อีคัวชั่น</button>
     <button @click="retrieveAll">retrieveAll</button>
     <button @click="selectChangeTile">changeTile</button>
@@ -55,11 +55,11 @@
     <button v-if="checkSpecialTile() == true" @click="selectSpecialTile">
       {{ showselecttile == true ? 'selecting tile' : 'select tile' }}
     </button>
-    <h3>เทินเท่าไหร่แล้วงับ : {{ turn == -1 ? "-" : turn }}</h3>
+    <h3>Round : {{ turn == -1 ? "-" : turn }}</h3>
   </div>
 
   <div class="user_panel">
-    <h4>ยัวร์สกอร์งับ : </h4>
+    <h4>Score : </h4>
     <h1>{{ player_score }}</h1>
 
   </div>
@@ -475,7 +475,7 @@ const computedScore = function () {
     return isBreak ? true : false
   })
   if (isBreak == false) {
-    alert('ยังไม่ได้ลงเบี้ยสักตัวเลยน้อง')
+    alert('ยังไม่ได้ลงเบี้ย โปรดลงเบี้ยก่อน')
   }
   isBreak = false
 
@@ -592,7 +592,7 @@ const getEquation = function (i, j, cell) {
       getEquationHorizontal(i, j)
     }
     else {
-      alert('วางส้นตรีนไรครับเนี่ย')
+      alert('วางหมากไม่ถูกต้อง')
       return
     }
   }
