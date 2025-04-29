@@ -703,7 +703,7 @@ const getEquation = function (i, j, cell) {
   equation.forEach(equationStatement => equationStatement.forEach((tileOnCell) => board[tileOnCell.i][tileOnCell.j].isReserved = true))
   equation = [[]]
   turn.value++
-  bot_turn.value = true
+  
 }
 const getEquationVertical = function (i, j) {
   let row = 0;
